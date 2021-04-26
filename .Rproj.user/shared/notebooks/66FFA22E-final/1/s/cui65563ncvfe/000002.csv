@@ -1,0 +1,8 @@
+"0","# FINAL MODEL (marginally better fit): AIC: 6098 | BIC: 6142 
+test_model <- glmer(resp_t ~ block * condition + vot +
+                              (1| workerId),
+                              data = test, family = ""binomial"")
+"
+"2","Error in glmer(resp_t ~ block * condition + vot + (1 | workerId), data = test,  : 
+  could not find function ""glmer""
+"

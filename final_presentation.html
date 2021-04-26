@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Right contex effects and adaptation of stop consonants (in English)</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Joselyn Rodriguez" />
+    <meta name="date" content="2021-04-25" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/rutgers.css" rel="stylesheet" />
+    <link href="libs/remark-css/rutgers-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Right contex effects and adaptation of stop consonants (in English)
+### Joselyn Rodriguez
+### Rutgers University
+### 2021-04-25
+
+---
+
+
+
+
+
+
+
+# Jumping right in: The study
+ 
+- Given previous research finding that when an ambiguous segment is encountered, listeners do not immediately try to disambiguate it to determine a lexical item, but maintain uncertainty until disambiguating information is encountered, we were interested in 
+  - (1) what information is available 
+  - (2) whether this finer-grained information is available for updating/learning
+--
+
+- Moving on...
+
+---
+
+# Jumping right in: The study
+
+- In order to test whether or not this semantic information that is available after encountering an ambiguous item is available to use in updating of representational information, we used a **perceptual learning** paradigm.
+  - cite like Norris et al (2003) and mcqueen maybe?
+
+--
+
+### Perceptual learning paradigms: the gist
+
+
+Pre-test --&gt; Recalibration of some sort --&gt; Post-test (yay! learning hopefully)
+
+&lt;!-- insert pic of the process --&gt;
+
+---
+
+# Methods 
+
+- for this study, the methods were similar to other perceptual learning paradigms but instead of having a recalibration take place through lexical disambiguation, we used semantic disambiguation. 
+
+- ex:
+
+"After the tent in the | campgrounds collapsed, we went to a hotel."
+
+
+- the critical sentences were taken from a previous study examining semantic right context effects on sentence comprehension and were re-recorded by one female speaker of American English (not me)
+  - Connine et al (1991)
+---
+
+# Methods
+#### Pre-test
+
+- stimuli for the pre-test consisted of a VOT continuum ranging from 15-85ms at 5ms intervals and were presented as "the tent" and "the dent" with only the VOT of the /t/ and /d/ differing between the two
+- this lasted about 11 minutes 
+--
+
+#### Exposure 
+- sentences mentioned above. Each were "short lag" sentences such that the disambiguating information was provided within 3-5 syllables of encountering the ambiguous word
+- participants were asked to respond whether they heard "tent" or "dent" used in the sentence
+  - this was both as an attention check as well as a way of comparing these findings to previous studies
+    - i.e., Connine et al (1991)
+--
+
+#### Pos-test
+- identical to the pre-test
+
+
+---
+# Analysis (the important part)
+## Bayesian vs. Frequentist analysis of the pre/post-test data
+
+- utilized a Bayesian multi-level model (using brms) and a Frequentist model using (lme4)
+
+- we are utilizing a multi-level logistic regression because...
+  - the data is looking at the proportion of /t/-responses (for pre/post tests)
+  - and accuracy along with proportion /t/-responses (for exposure)
+- multi-level because...
+  - we're interested in group-level effects since it's repeated measures and because we want to look at within-participant effects
+  
+---
+# Analysis
+## Bayesian vs. Frequentist analysis of the pre/post-test data
+
+.Large[$$\hat{y} = \alpha + {\beta}{X} + {u}{Z} + \epsilon $$]
+
+- recall the equation for MLM
+
+
+---
+# Analysis
+# Pre-data
+
+- Frequentist approach: 
+
+- in order to compare the pre- and post-test, I used lme4 to run the following model: 
+  - ` glmer(resp_t ~ block * condition + vot +  (1 | workerId), data = test, family = "binomial"(link = "logit"))`
+
+
+```r
+freq_analysis_1 &lt;- glmer(resp_t ~ block * condition + vot +
+                              (1 | workerId), 
+                              data = test, family = "binomial"(link = "logit"))
+```
+
+```
+## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, : Model is nearly unidentifiable: very large eigenvalue
+##  - Rescale variables?
+```
+
+```r
+freq_analysis_2 &lt;- glmer(resp_t ~ block * condition + vot +
+                              (1 | workerId) + 
+                              (1 | block) +
+                              (1 | stimulus), # random intercept for workerId and slope for block 
+                              data = test, family = "binomial"(link = "logit"))
+```
+
+```
+## boundary (singular) fit: see ?isSingular
+```
+
+```r
+summary(freq_analysis_1)
+```
+
+```
+## Generalized linear mixed model fit by maximum likelihood (Laplace
+##   Approximation) [glmerMod]
+##  Family: binomial  ( logit )
+## Formula: resp_t ~ block * condition + vot + (1 | workerId)
+##    Data: test
+## 
+##      AIC      BIC   logLik deviance df.resid 
+##  14376.8  14422.7  -7182.4  14364.8    15354 
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -7.3677 -0.5487  0.2275  0.5220  5.1415 
+## 
+## Random effects:
+##  Groups   Name        Variance Std.Dev.
+##  workerId (Intercept) 0.1299   0.3604  
+## Number of obs: 15360, groups:  workerId, 60
+## 
+## Fixed effects:
+##                                 Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)                    -3.184842   0.095720 -33.272  &lt; 2e-16 ***
+## blockpre                        0.296197   0.060951   4.860 1.18e-06 ***
+## conditiontent-biasing           0.221275   0.110319   2.006 0.044881 *  
+## vot                             0.073378   0.001158  63.358  &lt; 2e-16 ***
+## blockpre:conditiontent-biasing -0.299449   0.083458  -3.588 0.000333 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Correlation of Fixed Effects:
+##             (Intr) blckpr cndtn- vot   
+## blockpre    -0.343                     
+## cndtntnt-bs -0.625  0.275              
+## vot         -0.541  0.051  0.021       
+## blckpr:cnd-  0.251 -0.730 -0.377 -0.038
+## optimizer (Nelder_Mead) convergence code: 0 (OK)
+## Model is nearly unidentifiable: very large eigenvalue
+##  - Rescale variables?
+```
+
+
+
+
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

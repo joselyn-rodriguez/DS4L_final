@@ -1,0 +1,1 @@
+{"frames":[],"message":"Error in glmer(resp_t ~ block * condition + vot + (1 | workerId), data = test,  : \n  could not find function \"glmer\"\n"}

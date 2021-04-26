@@ -1,0 +1,75 @@
+# Generalized adaptation to sibilants
+# Eleanor Chodroff and Colin Wilson
+# Aug 1 2018
+
+# figures of response data (forced choice: s vs sh) 
+# must run analysis.R first to load in data
+
+require(tidyverse)
+require(ggthemes)
+
+###################
+##### FIGURES #####
+###################
+makePDF <- FALSE
+
+
+# z
+
+z %>% group_by(cond, step, subj) %>% summarise(mu1=mean(resp==1)) %>% summarise(mu=mean(mu1), se = sqrt(mu * (1-mu) / length(mu1))) -> fig_speech
+fig_speech$cond -> fig_speech$COG
+fig_speech$step <- as.numeric(as.character(fig_speech$step))-1
+fig_speech$step <- as.factor(fig_speech$step)
+
+if (makePDF == TRUE) {
+    pdf("~/Desktop/fric_speech_z.pdf", height=10, width=8)
+} else {
+    tiff("~/Desktop/fric_speech_z.tiff", height=10, width=8, res=1000, units='in')
+}
+ggplot(fig_speech, aes(x=step, y=mu, ymin=(mu-se), ymax=(mu+se), group=COG, color=COG, shape=COG)) + geom_point(size=5) + geom_line(size=1)+ geom_errorbar(width=0.2) + annotate("text", x = 9.5, y = 0.05, label="/z/", size = 13) + ylab("proportion /s/ response") + theme_few(33) + theme(legend.position = c(0.15,0.9))
+dev.off()
+
+# v
+
+v %>% group_by(cond, step, subj) %>% summarise(mu1=mean(resp==1)) %>% summarise(mu=mean(mu1), se = sqrt(mu * (1-mu) / length(mu1))) -> fig_speech
+fig_speech$cond -> fig_speech$COG
+fig_speech$step <- as.numeric(as.character(fig_speech$step))-1
+fig_speech$step <- as.factor(fig_speech$step)
+
+if (makePDF == TRUE) {
+    pdf("~/Desktop/fric_speech_v.pdf", height=10, width=8)
+} else {
+    tiff("~/Desktop/fric_speech_v.tiff", height=10, width=8, res=1000, units='in')
+}
+ggplot(fig_speech, aes(x=step, y=mu, ymin=(mu-se), ymax=(mu+se),group=COG, color=COG, shape=COG)) + geom_point(size=5) + geom_line(size=1)+ geom_errorbar(width=0.2) + annotate("text", x = 9.5, y = 0.05, label="/v/", size = 13) + ylab("proportion /s/ response") + theme_few(33) + theme(legend.position = c(0.15,0.9))
+dev.off()
+
+# noise 
+
+noise %>% group_by(cond, step, subj) %>% summarise(mu1=mean(resp==1)) %>% summarise(mu=mean(mu1), se = sqrt(mu * (1-mu) / length(mu1))) -> fig_nonspeech
+fig_nonspeech$cond -> fig_nonspeech$COG
+fig_nonspeech$step <- as.numeric(as.character(fig_nonspeech$step))-1
+fig_nonspeech$step <- as.factor(fig_nonspeech$step)
+
+if (makePDF == TRUE) {
+    pdf("~/Desktop/fric_nonspeech.pdf", height=10, width=8)
+} else {
+    tiff("~/Desktop/fric_nonspeech.tiff", height=10, width=8, res=1000, units='in')
+}
+ggplot(fig_nonspeech, aes(x=step, y=mu, ymin=(mu-se), ymax=(mu+se),group=COG, color=COG, shape=COG)) + geom_point(size=5) + geom_line(size=1)+ geom_errorbar(width=0.2) + annotate("text", x = 8, y = 0.05, label="white noise", size = 13) + ylab("proportion /s/ response")  + theme_few(33) + theme(legend.position = c(0.15,0.9))
+dev.off()
+
+# alternating z + noise
+
+speechNoise %>% group_by(cond, step, subj) %>% summarise(mu1=mean(resp==1)) %>% summarise(mu=mean(mu1), se = sqrt(mu * (1-mu) / length(mu1))) -> fig_nonspeech
+fig_nonspeech$cond -> fig_nonspeech$speechCOG
+fig_nonspeech$step <- as.numeric(as.character(fig_nonspeech$step))-1
+fig_nonspeech$step <- as.factor(fig_nonspeech$step)
+
+if (makePDF == TRUE) {
+    pdf("~/Desktop/fric_speechNoise.pdf", height=10, width=8)
+} else {
+    tiff("~/Desktop/fric_speechNoise.tiff", height=10, width=8, res=1000, units='in')
+}
+ggplot(fig_nonspeech, aes(x=step, y=mu, ymin=(mu-se), ymax=(mu+se),group=speechCOG, color=speechCOG, shape=speechCOG)) + geom_point(size=5) + geom_line(size=1)+ geom_errorbar(width=0.2)+ annotate("text", x = 8, y = 0.05, label="alternating", size = 13) + ylab("proportion /s/ response")  + theme_few(33) + theme(legend.position = c(0.25,0.9))
+dev.off()
