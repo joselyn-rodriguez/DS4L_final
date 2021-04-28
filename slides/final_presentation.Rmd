@@ -1,0 +1,441 @@
+---
+title: "Right contex effects and adaptation of stop consonants (in English)"
+subtitle: ""
+author: "Joselyn Rodriguez"
+institute: "Rutgers University"
+date: "`r Sys.Date()`"
+output:
+  xaringan::moon_reader:
+    css: [default, rutgers, rutgers-fonts]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+<!-- 
+
+#### TODO 
+
+
+1. Relevel variables.
+  - the base factor should be /t/-biasing
+  - make sure VOT is centered correctly
+  
+2. Calculate Rope
+
+3. Plot posterior estimates
+
+4. Actually set your priors
+
+-->
+
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+library(tidyverse)
+library(rstanarm)
+library(brms)
+library(tidybayes)
+library(lme4)
+library(lmerTest)
+library(psych)
+library(bayesplot)
+library(ProbBayes)
+```
+
+
+```{r load-data, include=FALSE}
+
+# load some data that i'll need real quick
+temp <- read_csv("data/batch1-test.csv") 
+
+# releveld w/pre:tent-biasing as the intercept
+test <- temp %>% 
+      mutate(block = factor(block, levels=c("pre", "post")),
+             resp_t = as.numeric(resp_t))  %>%
+      mutate(condition = factor(condition, levels = c("tent-biasing", "dent-biasing"))) %>% 
+      mutate(vot = (vot - mean(vot))) # centering
+
+test %>% 
+  group_by(workerId) %>% 
+  summarize(average = mean(resp_t), sd = sd(resp_t))
+
+pre_test <- test %>% 
+  filter(block == "pre")
+nrow(pre_test)
+
+post_test <- test %>% 
+  filter(block == "post")
+nrow(post_test)
+
+# I'm not gonna use this data for the class i dont think
+# exposure <- read_csv("data/batch1-exposure.csv")
+```
+
+
+# Jumping right in: The study
+ 
+- Given previous research finding that when an ambiguous segment is encountered, listeners do not immediately try to disambiguate it to determine a lexical item, but maintain uncertainty until disambiguating information is encountered, we were interested in 
+  - (1) what information is available 
+  - (2) whether this finer-grained information is available for updating/learning
+--
+
+- Moving on...
+
+---
+
+# Jumping right in: The study
+
+- In order to test whether or not this semantic information that is available after encountering an ambiguous item is available to use in updating of representational information, we used a **perceptual learning** paradigm.
+  - Norris et al. (2003), Eisner & McQueen (2005), 
+
+--
+
+### Perceptual learning paradigms: the gist
+
+
+Pre-test --> Recalibration of some sort --> Post-test (yay! learning hopefully)
+
+---
+
+# Methods 
+
+- for this study, the methods were similar to other perceptual learning paradigms but instead of having a recalibration take place through lexical disambiguation, we used semantic disambiguation. 
+
+- ex:
+
+"After the tent in the | campgrounds collapsed, we went to a hotel."
+
+
+- the critical sentences were taken from a previous study examining semantic right context effects on sentence comprehension and were re-recorded by one female speaker of American English (not me)
+  - Connine et al. (1991)
+  
+- **importantly**, participants were separated into two biasing conditions:
+  - /t/-biasing and /d/-biasing
+  - in these conditions, the ambiguous region of the vot continuuum was disambiguated through either /t/ or /d/-biasing semantic contexts
+
+---
+
+# Methods
+#### Pre-test
+
+- stimuli for the pre-test consisted of a VOT continuum ranging from 15-85ms at 5ms intervals and were presented as "the tent" and "the dent" with only the VOT of the /t/ and /d/ differing between the two
+- this lasted about 11 minutes 
+--
+
+#### Exposure 
+- sentences mentioned above. Each were "short lag" sentences such that the disambiguating information was provided within 3-5 syllables of encountering the ambiguous word
+- participants were asked to respond whether they heard "tent" or "dent" used in the sentence
+  - this was both as an attention check as well as a way of comparing these findings to previous studies
+    - i.e., Connine et al (1991)
+--
+
+#### Pos-test
+- identical to the pre-test
+
+---
+
+# Visualize then Analyze
+## First, let's take a look at our raw data to get an idea of what it looks like 
+
+```{r glimpse-data}
+test %>% 
+  select(-workerId) %>% 
+  head(n=10)
+```
+
+---
+
+```{r visualize, echo=FALSE, fig.width= 10}
+ggplot(data = test,
+       aes(x=vot, y=resp_t, color = condition)) +
+  # uncomment to see the actual data points instead of just the mean
+  geom_point(position=position_jitter(h = 0.05), alpha=0.1) +
+  geom_line(stat="summary", fun = mean) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "red") +
+  facet_wrap( . ~ block) +
+  ylab("Proportion of /t/ response") + xlab("VOT (ms)") +
+  labs(title = "*Pre- and Post Continuum 'Tent' Responses*", tag = "Figure 1") +
+  mdthemes::md_theme_bw() +
+  theme(text=element_text(size=11, family = "Times"))
+
+
+```
+
+---
+# Analysis (the important part)
+## Bayesian vs. Frequentist analysis of the test data
+
+- utilized a multi-level Bayesian model (using brms) and a Frequentist model using (lme4)
+
+- we are utilizing a multi-level logistic regression because...
+  - the data is looking at the proportion of /t/-responses (for pre/post tests)
+  
+- multi-level because...
+  - we're interested in group-level effects since we want to look at within-participant and across-condition
+  
+---
+
+# Analysis
+## Test data - Frequentist approach: 
+
+- in order to compare the pre- and post-test, I used lme4 to run the following model: 
+
+``` 
+glmer(resp_t ~ block * condition * vot + 
+          (block | workerId) + 
+          (1 | stimulus), 
+          data = test, family = "binomial"(link = "logit") 
+```
+  
+- taking this apart:
+    - glmer: a generali**zed** multi-level regression model 
+    - outcome variable: proportion of /t/ responses
+    - fixed effects: block (pre vs. post), condition (tent or dent-biasing), and vot
+    - random effects: workerId, item, block
+      - specifically, random intercepts by item and subject and random slopes for blocks across subjects
+
+```{r frequentist, eval=FALSE, include=FALSE}
+# convert to probability: logit2prob <- function(logit){
+#   odds <- exp(logit)
+#   prob <- odds / (1 + odds)
+#   return(prob)
+# }
+# infinite thanks to: https://sebastiansauer.github.io/convert_logit2prob/
+
+# you could add a random intercept for condition, but it may or may not add any real explanatory value. that would technically contribute to like "maximal" random effects structure though
+
+#### Begin Frequentist Modeling
+
+# intercept model 
+freq_analysis_int <- glm(resp_t ~ 1, data = test, family = "binomial"(link = "logit"))
+summary(freq_analysis_int)
+
+# including interaction and one random effect
+freq_analysis_1 <- glmer(resp_t ~ block * condition * vot +
+                                  (1 | workerId),
+                                  data = test, family = "binomial"(link = "logit"))
+# adding one more random effect
+freq_analysis_2 <- glmer(resp_t ~ block * condition * vot +
+                                  (1 | workerId) +
+                                  (1 | stimulus),
+                                  data = test, family = "binomial"(link = "logit"), 
+                                  control=glmerControl(optimizer="bobyqa",
+                                  optCtrl=list(maxfun=2e5)))
+
+#### Model comparison
+freq_anova <-  anova(freq_analysis_1, freq_analysis_2 , freq_analysis_full, test = "Chisq") # well it looks like including stimulus is better?
+
+```
+
+---
+
+# Analysis
+## Test data - Frequentist approach: 
+
+Let's take a look at the output
+- things to consider:
+    - the vot was centered around the mean
+    - the intercept is pre-test and "tent"-biasing
+- "significant" effects:
+  - interaction
+  - vot (expected)
+  - intercept (mean: (prob) 0.7267025)
+    - the probability of /t/ response in the pre-test and tent-biasing condition given a vot of 50
+
+---
+
+```{r frequentist-model, include=FALSE}
+# adding in a random slope and lets goooo
+freq_analysis_full <- glmer(resp_t ~ block * condition * vot +
+                                  (block | workerId) +
+                                  (1 | stimulus),
+                                  data = test, family = "binomial"(link = "logit"), 
+                                  control=glmerControl(optimizer="bobyqa",
+                                  optCtrl=list(maxfun=2e5)))
+# Let's take a look at the summary for the full model 
+
+```
+
+
+```{r frequentist-summary, echo=FALSE}
+freq_summary <- summary(freq_analysis_full)
+freq_summary
+```
+---
+
+- unfortunately, the residuals don't look particularly normal though
+- none of the models' residuals looked great
+  - I assume it might be due to the fact the data was biased to begin with
+```{r}
+qqnorm(summary(freq_analysis_2)$residuals)
+```
+
+
+---
+# Analysis
+## Test data - Bayesian approach
+
+  
+```{r bayesian, eval=FALSE, include=FALSE}
+#### Bayesian Modeling (unnecessary for presentation)
+
+# intercept model
+bayes_analysis_int <- brm(resp_t ~ 1, data = test, family = "bernoulli"(link = "logit"))
+summary(bayes_analysis_int)
+
+# adding in one random intercept
+bayes_analysis_1 <- brm(resp_t ~ block * condition * vot +
+                                  (1 | workerId),
+                                  data = test, family = "bernoulli"(link = "logit"))
+summary(bayes_analysis_1)
+
+# adding in another random intercept
+bayes_analysis_2 <- brm(resp_t ~ block * condition * vot +
+                                  (1 | workerId) +
+                                  (1 | stimulus),
+                                  data = test, family = "bernoulli"(link = "logit"),
+                                  prior = c(prior("normal(0,0.5)", class = "b"), # setting priors (remember -4 to 4)
+                                            prior("normal(0,1", class = "Intercept")),
+                                  cores = getOption("mc.cores", 4),
+                                  save_pars = save_pars(all = T))
+summary(bayes_analysis_2)
+```
+
+
+
+```{r bayesian-model, include=FALSE}
+# finally, random intercepts and random slope for block
+bayes_analysis_full <- brm(resp_t ~ block * condition * vot +
+                                  (block | workerId) +
+                                  (1 | stimulus),
+                                  data = test, family = "bernoulli"(link = "logit"), 
+                                  prior = c(prior("normal(0,0.5)", class = "b"), # setting priors (remember -4 to 4)
+                                            prior("normal(0,1", class = "Intercept")), # setting priors (remember -4 to 4)
+                                  cores = getOption("mc.cores", 4),
+                                  save_pars = save_pars(all = T))
+```
+
+
+- alright, this is very similar, but we're going to make a few adjustments. 
+- setting priors:
+  - given that it's on a logistic scale [-inf, inf] (but basically [-4,4]) we can set the intercept prior as a normal distribution centered around 0 with a standard deviation of 1 and population level priors as a normal distribution centered around 0 with sds of 0.5 
+  - (bernoulli is just a special case of binomial dist w/two outcomes)
+
+```
+brm(resp_t ~ block * condition * vot + 
+                                  (block | workerId) +
+                                  (1 | stimulus),
+                                  data = test, family = "bernoulli"(link = "logit"), 
+                                  prior = c(prior("normal(0,0.5)", class = "b"), 
+                                            prior("normal(0,1", class = "Intercept")), 
+                                  save_pars = save_pars(all = T)) 
+```
+
+---
+
+```{r bayesian-summary, echo=FALSE}
+bayes_summary <- summary(bayes_analysis_full)
+bayes_summary
+```
+
+
+---
+# Analysis
+## Test data - Bayesian approach
+
+- let's take a closer look at our posterior estimates
+
+```{r rope, include=FALSE}
+# possible multi-collinearity between b_blockpost.conditiondentMbiasing.vot and b_conditiondentMbiasing.vot (r = 0.75). This might lead to inappropriate results.
+ROPE <- bayestestR::rope(bayes_analysis_full,
+             range = "default", 
+             ci = 0.95, 
+             ci_method = "HDI", # or ETI - forgot what the difference is lol
+             effects = "all",
+             components = "all")
+```
+
+```{r parameter-estimates, include=FALSE}
+# ROPE calculated as: [-0.18, 0.18]
+posterior_table <- as_tibble(bayes_analysis_full)
+```
+
+
+```{r echo=FALSE}
+posterior_table %>% 
+  select(c("b_Intercept":"b_blockpost:conditiondentMbiasing:vot")) %>% 
+  pivot_longer(everything(), names_to = "parameter", values_to = "estimate") %>% 
+  ggplot(., aes(x = estimate, y = parameter)) +
+    stat_halfeye() + 
+    geom_vline(xintercept = c(ROPE$ROPE_low, ROPE$ROPE_high), linetype = "dashed", color = "skyblue") +
+    labs(title = "*Parameter estimates for Bayesian Model*", tag = "Figure 2") +
+    mdthemes::md_theme_bw() +
+    theme(text=element_text(size=11, family = "Times")) + 
+    scale_fill_manual(values = c("gray80", "skyblue"))
+
+```
+
+---
+
+```{r echo=FALSE}
+posterior_table %>% 
+  select("b_Intercept", "b_blockpost:conditiondentMbiasing") %>% 
+  pivot_longer(everything(), names_to = "parameter", values_to = "estimate") %>% 
+  ggplot(., aes(x = estimate, y = parameter, fill = stat(abs(x) < .18))) +
+    stat_halfeye() +  
+    geom_vline(xintercept = c(ROPE$ROPE_low, ROPE$ROPE_high), linetype = "dashed", color = "skyblue") +
+    labs(title = "*Parameter estimates for Bayesian Model*", tag = "Figure 2") +
+    mdthemes::md_theme_bw() +
+    theme(text=element_text(size=11, family = "Times")) + 
+    scale_fill_manual(values = c("gray80", "skyblue"))
+```
+
+
+---
+# Statistical Takeaways
+
+- in the end, the results from both the bayesian and frequentist models were the same:
+  - the strongest predictor was the interaction term between condition and block which was expected
+
+
+- although running the frequentist model did take a bit more computational power than others because it included random slopes for the blocks by subject
+  - if it hadn't been able to converge, then the bayesian model would've really been necessary
+
+---
+# Theoretical Takeaways
+
+- it looks like there was some effect of learning between the pre and post tests
+- but, keep in mind that it really doesn't look like the ambiguous region was actually ambiguous and was therefore already biasing people towards /t/ responses before even completing the exposure phase
+  - because of this, there is an effect in the post-condition but only for those in the /d/-biasing condition really
+
+
+
+---
+# References
+
+Connine, C. M., Blasko, D. G., & Hall, M. (1991). Effects of subsequent sentence context in auditory word recognition: Temporal and linguistic constrainst. Journal of Memory and Language, 30(2), 234-250.
+
+Eisner, F., & McQueen, J. M. (2005). The specificity of perceptual learning in speech
+processing. Perception & Psychophysics, 67(2), 224–238.
+
+Kraljic, T., & Samuel, A. G. (2005). Perceptual learning for speech: Is there a return to
+normal? Cognitive Psychology, 51(2), 141–178.
+
+Norris, D., McQueen, J. M., & Cutler, A. (2003). Perceptual learning in speech. Cognitive
+Psychology, 47(2), 204–238.
+
+
+
+
+
+
+
+
+
+
+
+
+
