@@ -22,6 +22,13 @@ output:
 1. Relevel variables.
   - the base factor should be /t/-biasing
   - make sure VOT is centered correctly
+  
+2. Calculate Rope
+
+3. Plot posterior estimates
+
+4. Actually set your priors
+
 
 
 
@@ -33,20 +40,28 @@ output:
 options(htmltools.dir.version = FALSE)
 
 ```
+
 ```{r, include = FALSE}
-library("tidyverse")
-library("brms")
-library("tidybayes")
-library("lme4")
-library("lmerTest")
-library("psych")
+library(tidyverse)
+library(brms)
+library(tidybayes)
+library(lme4)
+library(lmerTest)
+library(psych)
+library(bayesplot)
+library(ProbBayes)
+
 
 # load some data that i'll need real quick
 
 temp <- read_csv("data/batch1-test.csv") 
 
+# releveld w/pre:tent-biasing as the intercept
 test <- temp %>% 
-          mutate(resp_t = as.numeric(resp_t))
+      mutate(block = factor(block, levels=c("pre", "post")),
+             resp_t = as.numeric(resp_t))  %>%
+      mutate(condition = factor(condition, levels = c("tent-biasing", "dent-biasing"))) %>% 
+      mutate(vot = (vot - mean(vot))) # centering
 
 test %>% 
   group_by(workerId) %>% 
@@ -121,6 +136,26 @@ Pre-test --> Recalibration of some sort --> Post-test (yay! learning hopefully)
 #### Pos-test
 - identical to the pre-test
 
+---
+
+# Visualize then Analyze
+
+```{r visualize}
+
+ggplot(data = test,
+       aes(x=vot, y=resp_t, color = condition)) +
+  # uncomment to see the actual data points instead of just the mean
+  geom_point(position=position_jitter(h = 0.05), alpha=0.1) +
+  geom_line(stat="summary", fun = mean) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "red") +
+  facet_wrap( . ~ block) +
+  ylab("Proportion of /t/ response") + xlab("VOT (ms)") +
+  labs(title = "*Pre- and Post Continuum 'Tent' Responses*", tag = "Figure 1") +
+  mdthemes::md_theme_bw() +
+  theme(text=element_text(size=11, family = "Times"))
+
+```
+
 
 ---
 # Analysis (the important part)
@@ -145,7 +180,7 @@ Pre-test --> Recalibration of some sort --> Post-test (yay! learning hopefully)
 
 ---
 # Analysis
-# Test data
+## Test data
 
 - Frequentist approach: 
 
@@ -159,8 +194,7 @@ Pre-test --> Recalibration of some sort --> Post-test (yay! learning hopefully)
     - random effects: workerId, item, block
       - specifically, random intercepts by item and subject and by subject random slopes for blocks
 
-```{r frequentist}
-
+```{r frequentist, eval=FALSE, include=FALSE}
 # convert to probability: logit2prob <- function(logit){
 #   odds <- exp(logit)
 #   prob <- odds / (1 + odds)
@@ -168,16 +202,19 @@ Pre-test --> Recalibration of some sort --> Post-test (yay! learning hopefully)
 # }
 # infinite thanks to: https://sebastiansauer.github.io/convert_logit2prob/
 
+# you could add a random intercept for condition, but it may or may not add any real explanatory value. that would technically contribute to like "maximal" random effects structure though
 
+#### Begin Frequentist Modeling
+
+# intercept model 
 freq_analysis_int <- glm(resp_t ~ 1, data = test, family = "binomial"(link = "logit"))
 summary(freq_analysis_int)
-mean(test$resp_t)
 
-
+# including interaction and one random effect
 freq_analysis_1 <- glmer(resp_t ~ block * condition * vot +
                                   (1 | workerId),
                                   data = test, family = "binomial"(link = "logit"))
-
+# adding one more random effect
 freq_analysis_2 <- glmer(resp_t ~ block * condition * vot +
                                   (1 | workerId) +
                                   (1 | stimulus),
@@ -185,18 +222,38 @@ freq_analysis_2 <- glmer(resp_t ~ block * condition * vot +
                                   control=glmerControl(optimizer="bobyqa",
                                   optCtrl=list(maxfun=2e5)))
 
+# adding in a random slope and lets goooo
 freq_analysis_full <- glmer(resp_t ~ block * condition * vot +
                                   (block | workerId) +
                                   (1 | stimulus),
                                   data = test, family = "binomial"(link = "logit"), 
                                   control=glmerControl(optimizer="bobyqa",
                                   optCtrl=list(maxfun=2e5)))
-
-summary(freq_analysis_full)
-anova(freq_analysis_1, freq_analysis_2 , freq_analysis_full, test = "Chisq") # well it looks like including stimulus is better?
+#### Model comparison
+freq_anova <-  anova(freq_analysis_1, freq_analysis_2 , freq_analysis_full, test = "Chisq") # well it looks like including stimulus is better?
 
 ```
 
+---
+
+# Analysis
+## Test data
+
+- Let's take a look at the output
+  - things to consider:
+      - the vot was centered around the mean
+      - the intercept is pre-test and "tent"-biasing
+  - significant effects:
+    - interaction (yay)
+    - vot (expected)
+    - intercept (mean: (prob) 0.7267025)
+      - the probability of /t/ response in the pre-test and tent-biasing condition given a vot of 50 (remember it's centered around 0 here)
+      - which isn't great because around the center should be ambiguous but that's a problem for future me
+
+```{r frequentist-summary}
+# Let's take a look at the summary for the full model 
+summary(freq_analysis_full)
+```
 
 
 ---
@@ -206,33 +263,94 @@ anova(freq_analysis_1, freq_analysis_2 , freq_analysis_full, test = "Chisq") # w
 - Bayesian approach: 
 
 - alright, this is very similar, but we're going to make a few adjustments. 
-  - `brm(resp_t ~ block * condition * vot + (block | workerId) + (1 | stimulus), data = test, family = "binomial"(link = "logit")`
+  - `brm(resp_t ~ block * condition * vot + (block | workerId) + (1 | stimulus), data = test, family = "bernoulli"(link = "logit")`
   
 ```{r bayesian}
+#### Bayesian Modeling 
 
+# intercept model
 bayes_analysis_int <- brm(resp_t ~ 1, data = test, family = "binomial"(link = "logit"))
 summary(bayes_analysis_int)
-mean(test$resp_t)
 
-
+# adding in one random intercept
 bayes_analysis_1 <- brm(resp_t ~ block * condition * vot +
                                   (1 | workerId),
                                   data = test, family = "binomial"(link = "logit"))
+summary(bayes_analysis_1)
 
+# adding in another random intercept
 bayes_analysis_2 <- brm(resp_t ~ block * condition * vot +
                                   (1 | workerId) +
                                   (1 | stimulus),
                                   data = test, family = "binomial"(link = "logit"))
-summary(bayes_analysis_1)
+summary(bayes_analysis_2)
+
+# finally, random intercepts and random slope for block
 bayes_analysis_full <- brm(resp_t ~ block * condition * vot +
+                                  (block | workerId) +
+                                  (1 | stimulus),
+                                  data = test, family = "bernoulli"(link = "logit"), 
+                                  prior = c(prior("normal(0,0.5)", class = "b"), # setting priors (remember -4 to 4)
+                                            prior("normal(0,1", class = "Intercept")), # setting priors (remember -4 to 4)
+                                  cores = getOption("mc.cores", 4))
+
+bayes_summary <- summary(bayes_analysis_full)
+```
+
+
+```{r bayesian}
+#### Model comparison 
+waic(bayes_analysis_2 , bayes_analysis_full) 
+
+prior_summary(bayes_analysis_full)
+
+rstanarm_model <-  rstanarm::stan_glmer(resp_t ~ block * condition * vot +
                                   (block | workerId) +
                                   (1 | stimulus),
                                   data = test, family = "binomial"(link = "logit"))
 
-summary(bayes_analysis_full)
-anova(bayes_analysis_1, bayes_analysis_2 , bayes_analysis_full, test = "Chisq") # well it looks like including stimulus is better?
+posterior_table <- as_tibble(bayes_analysis_full)
+```
+
+```{r rope-time}
+# possible multi-collinearity between b_blockpost.conditiondentMbiasing.vot and b_conditiondentMbiasing.vot (r = 0.75). This might lead to inappropriate results.
+ROPE <- rope(bayes_analysis_full,
+             range = "default", 
+             ci = 0.95, 
+             ci_method = "HDI", # or ETI - forgot what the difference is lol
+             effects = "all",
+             components = "all")
+```
+
+```{r parameter-estimates}
+# ROPE calculated as: [-0.18, 0.18]
+posterior_table %>% 
+  select(c("b_Intercept":"b_blockpost:conditiondentMbiasing:vot")) %>% 
+  pivot_longer(everything(), names_to = "parameter", values_to = "estimate") %>% 
+  ggplot(., aes(x = estimate, y = parameter, fill = stat(abs(x) < .18))) +
+    stat_halfeye() + 
+    geom_vline(xintercept = c(ROPE$ROPE_low, ROPE$ROPE_high), linetype = "dashed", color = "red") +
+    labs(title = "*Parameter estimates for Bayesian Model*", tag = "Figure 2") +
+    mdthemes::md_theme_bw() +
+    theme(text=element_text(size=11, family = "Times")) + 
+    scale_fill_manual(values = c("gray80", "skyblue"))
+
+# not relevant for our current purposes
+# mcmc_hist(posterior_table, pars = c("b_Intercept", "b_blockpost:conditiondentMbiasing"), 
+#              size = 1.5, alpha = 0.5)
+
 
 ```
+
+```{r posterior-samples}
+get_variables(bayes_analysis_full)
+
+bayes_analysis_full %>%
+  spread_draws(r_workerId[worker,intercept])
+```
+
+
+
 
 
 
