@@ -4,7 +4,7 @@
     <title>Right contex effects and adaptation of stop consonants (in English)</title>
     <meta charset="utf-8" />
     <meta name="author" content="Joselyn Rodriguez" />
-    <meta name="date" content="2021-04-25" />
+    <meta name="date" content="2021-04-28" />
     <script src="libs/header-attrs/header-attrs.js"></script>
     <link href="libs/remark-css/default.css" rel="stylesheet" />
     <link href="libs/remark-css/rutgers.css" rel="stylesheet" />
@@ -17,9 +17,28 @@ class: center, middle, inverse, title-slide
 # Right contex effects and adaptation of stop consonants (in English)
 ### Joselyn Rodriguez
 ### Rutgers University
-### 2021-04-25
+### 2021-04-28
 
 ---
+
+
+&lt;!-- 
+
+#### TODO 
+
+
+1. Relevel variables.
+  - the base factor should be /t/-biasing
+  - make sure VOT is centered correctly
+  
+2. Calculate Rope
+
+3. Plot posterior estimates
+
+4. Actually set your priors
+
+--&gt;
+
 
 
 
@@ -41,7 +60,7 @@ class: center, middle, inverse, title-slide
 # Jumping right in: The study
 
 - In order to test whether or not this semantic information that is available after encountering an ambiguous item is available to use in updating of representational information, we used a **perceptual learning** paradigm.
-  - cite like Norris et al (2003) and mcqueen maybe?
+  - Norris et al. (2003), Eisner &amp; McQueen (2005), 
 
 --
 
@@ -49,8 +68,6 @@ class: center, middle, inverse, title-slide
 
 
 Pre-test --&gt; Recalibration of some sort --&gt; Post-test (yay! learning hopefully)
-
-&lt;!-- insert pic of the process --&gt;
 
 ---
 
@@ -64,7 +81,12 @@ Pre-test --&gt; Recalibration of some sort --&gt; Post-test (yay! learning hopef
 
 
 - the critical sentences were taken from a previous study examining semantic right context effects on sentence comprehension and were re-recorded by one female speaker of American English (not me)
-  - Connine et al (1991)
+  - Connine et al. (1991)
+  
+- **importantly**, participants were separated into two biasing conditions:
+  - /t/-biasing and /d/-biasing
+  - in these conditions, the ambiguous region of the vot continuuum was disambiguated through either /t/ or /d/-biasing semantic contexts
+
 ---
 
 # Methods
@@ -84,104 +106,269 @@ Pre-test --&gt; Recalibration of some sort --&gt; Post-test (yay! learning hopef
 #### Pos-test
 - identical to the pre-test
 
+---
+
+# Visualize then Analyze
+## First, let's take a look at our raw data to get an idea of what it looks like 
+
+
+```r
+test %&gt;% 
+  select(-workerId) %&gt;% 
+  head(n=10)
+```
+
+```
+## # A tibble: 10 x 10
+##    condition stimulus response sender sender_id   vot block_id block resp_t
+##    &lt;fct&gt;     &lt;chr&gt;    &lt;chr&gt;    &lt;chr&gt;  &lt;chr&gt;     &lt;dbl&gt;    &lt;dbl&gt; &lt;fct&gt;  &lt;dbl&gt;
+##  1 tent-bia… continu… dent     Sounds 6_0_0_1   -27.5        6 pre        0
+##  2 tent-bia… continu… dent     Sounds 6_0_1_1   -12.5        6 pre        0
+##  3 tent-bia… continu… tent     Sounds 6_0_2_1    -2.5        6 pre        1
+##  4 tent-bia… continu… tent     Sounds 6_0_3_1    12.5        6 pre        1
+##  5 tent-bia… continu… tent     Sounds 6_0_4_1     7.5        6 pre        1
+##  6 tent-bia… continu… tent     Sounds 6_0_5_1    -7.5        6 pre        1
+##  7 tent-bia… continu… tent     Sounds 6_0_6_1    17.5        6 pre        1
+##  8 tent-bia… continu… tent     Sounds 6_0_7_1     2.5        6 pre        1
+##  9 tent-bia… continu… tent     Sounds 6_0_8_1   -37.5        6 pre        1
+## 10 tent-bia… continu… tent     Sounds 6_0_9_1    32.5        6 pre        1
+## # … with 1 more variable: trial &lt;dbl&gt;
+```
+
+---
+
+![](final_presentation_files/figure-html/visualize-1.png)&lt;!-- --&gt;
 
 ---
 # Analysis (the important part)
-## Bayesian vs. Frequentist analysis of the pre/post-test data
+## Bayesian vs. Frequentist analysis of the test data
 
-- utilized a Bayesian multi-level model (using brms) and a Frequentist model using (lme4)
+- utilized a multi-level Bayesian model (using brms) and a Frequentist model using (lme4)
 
 - we are utilizing a multi-level logistic regression because...
   - the data is looking at the proportion of /t/-responses (for pre/post tests)
-  - and accuracy along with proportion /t/-responses (for exposure)
+  
 - multi-level because...
-  - we're interested in group-level effects since it's repeated measures and because we want to look at within-participant effects
+  - we're interested in group-level effects since we want to look at within-participant and across-condition
   
 ---
+
 # Analysis
-## Bayesian vs. Frequentist analysis of the pre/post-test data
+## Test data - Frequentist approach: 
 
-.Large[$$\hat{y} = \alpha + {\beta}{X} + {u}{Z} + \epsilon $$]
+- in order to compare the pre- and post-test, I used lme4 to run the following model: 
 
-- recall the equation for MLM
+``` 
+glmer(resp_t ~ block * condition * vot + 
+          (block | workerId) + 
+          (1 | stimulus), 
+          data = test, family = "binomial"(link = "logit") 
+```
+  
+- taking this apart:
+    - glmer: a generali**zed** multi-level regression model 
+    - outcome variable: proportion of /t/ responses
+    - fixed effects: block (pre vs. post), condition (tent or dent-biasing), and vot
+    - random effects: workerId, item, block
+      - specifically, random intercepts by item and subject and random slopes for blocks across subjects
+
 
 
 ---
+
 # Analysis
-# Pre-data
+## Test data - Frequentist approach: 
 
-- Frequentist approach: 
+Let's take a look at the output
+- things to consider:
+    - the vot was centered around the mean
+    - the intercept is pre-test and "tent"-biasing
+- significant effects:
+  - interaction (yay)
+  - vot (expected)
+  - intercept (mean: (prob) 0.7267025)
+    - the probability of /t/ response in the pre-test and tent-biasing condition given a vot of 50
 
-- in order to compare the pre- and post-test, I used lme4 to run the following model: 
-  - ` glmer(resp_t ~ block * condition + vot +  (1 | workerId), data = test, family = "binomial"(link = "logit"))`
+---
 
 
-```r
-freq_analysis_1 &lt;- glmer(resp_t ~ block * condition + vot +
-                              (1 | workerId), 
-                              data = test, family = "binomial"(link = "logit"))
-```
 
-```
-## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, : Model is nearly unidentifiable: very large eigenvalue
-##  - Rescale variables?
-```
 
-```r
-freq_analysis_2 &lt;- glmer(resp_t ~ block * condition + vot +
-                              (1 | workerId) + 
-                              (1 | block) +
-                              (1 | stimulus), # random intercept for workerId and slope for block 
-                              data = test, family = "binomial"(link = "logit"))
-```
-
-```
-## boundary (singular) fit: see ?isSingular
-```
-
-```r
-summary(freq_analysis_1)
-```
 
 ```
 ## Generalized linear mixed model fit by maximum likelihood (Laplace
 ##   Approximation) [glmerMod]
 ##  Family: binomial  ( logit )
-## Formula: resp_t ~ block * condition + vot + (1 | workerId)
+## Formula: resp_t ~ block * condition * vot + (block | workerId) + (1 |  
+##     stimulus)
 ##    Data: test
+## Control: glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e+05))
 ## 
 ##      AIC      BIC   logLik deviance df.resid 
-##  14376.8  14422.7  -7182.4  14364.8    15354 
+##   5599.8   5688.3  -2787.9   5575.8    11764 
 ## 
 ## Scaled residuals: 
-##     Min      1Q  Median      3Q     Max 
-## -7.3677 -0.5487  0.2275  0.5220  5.1415 
+##      Min       1Q   Median       3Q      Max 
+## -21.2909  -0.2106   0.1029   0.1994  11.5049 
 ## 
 ## Random effects:
-##  Groups   Name        Variance Std.Dev.
-##  workerId (Intercept) 0.1299   0.3604  
-## Number of obs: 15360, groups:  workerId, 60
+##  Groups   Name        Variance Std.Dev. Corr 
+##  workerId (Intercept) 0.7355   0.8576        
+##           blockpost   0.1984   0.4454   -0.57
+##  stimulus (Intercept) 1.0324   1.0161        
+## Number of obs: 11776, groups:  workerId, 46; stimulus, 16
 ## 
 ## Fixed effects:
-##                                 Estimate Std. Error z value Pr(&gt;|z|)    
-## (Intercept)                    -3.184842   0.095720 -33.272  &lt; 2e-16 ***
-## blockpre                        0.296197   0.060951   4.860 1.18e-06 ***
-## conditiontent-biasing           0.221275   0.110319   2.006 0.044881 *  
-## vot                             0.073378   0.001158  63.358  &lt; 2e-16 ***
-## blockpre:conditiontent-biasing -0.299449   0.083458  -3.588 0.000333 ***
+##                                      Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)                          0.977956   0.319327   3.063  0.00219 ** 
+## blockpost                           -0.079052   0.140760  -0.562  0.57438    
+## conditiondent-biasing                0.112033   0.278827   0.402  0.68783    
+## vot                                  0.130904   0.012040  10.873  &lt; 2e-16 ***
+## blockpost:conditiondent-biasing     -0.585382   0.203515  -2.876  0.00402 ** 
+## blockpost:vot                       -0.004491   0.006573  -0.683  0.49440    
+## conditiondent-biasing:vot            0.009660   0.007288   1.326  0.18499    
+## blockpost:conditiondent-biasing:vot -0.014036   0.009413  -1.491  0.13592    
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## Correlation of Fixed Effects:
-##             (Intr) blckpr cndtn- vot   
-## blockpre    -0.343                     
-## cndtntnt-bs -0.625  0.275              
-## vot         -0.541  0.051  0.021       
-## blckpr:cnd-  0.251 -0.730 -0.377 -0.038
-## optimizer (Nelder_Mead) convergence code: 0 (OK)
-## Model is nearly unidentifiable: very large eigenvalue
-##  - Rescale variables?
+##             (Intr) blckps cndtn- vot    blck:- blckp: cndt-:
+## blockpost   -0.337                                          
+## cndtndnt-bs -0.409  0.382                                   
+## vot          0.043 -0.092 -0.044                            
+## blckpst:cn-  0.228 -0.687 -0.576  0.058                     
+## blockpst:vt -0.075  0.305  0.077 -0.287 -0.197              
+## cndtndnt-b: -0.062  0.138  0.190 -0.247 -0.253  0.438       
+## blckpst:c-:  0.041 -0.197 -0.144  0.184  0.274 -0.653 -0.754
 ```
+
+
+
+---
+# Analysis
+## Test data - Bayesian approach
+
+  
+
+
+
+
+
+
+
+- alright, this is very similar, but we're going to make a few adjustments. 
+- setting priors:
+  - given that it's on a logistic scale [-inf, inf] (but basically [-4,4]) we can set the intercept prior as a normal distribution centered around 0 with a standard deviation of 1 and population level priors as a normal distribution centered around 0 with sds of 0.5 
+  - (bernoulli is just a special case of binomial dist w/two outcomes)
+
+```
+brm(resp_t ~ block * condition * vot + 
+                                  (block | workerId) +
+                                  (1 | stimulus),
+                                  data = test, family = "bernoulli"(link = "logit"), 
+                                  prior = c(prior("normal(0,0.5)", class = "b"), 
+                                            prior("normal(0,1", class = "Intercept")), 
+                                  save_pars = save_pars(all = T)) 
+```
+
+---
+
+
+```
+##  Family: bernoulli 
+##   Links: mu = logit 
+## Formula: resp_t ~ block * condition * vot + (block | workerId) + (1 | stimulus) 
+##    Data: test (Number of observations: 11776) 
+## Samples: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
+##          total post-warmup samples = 4000
+## 
+## Group-Level Effects: 
+## ~stimulus (Number of levels: 16) 
+##               Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## sd(Intercept)     1.17      0.25     0.80     1.76 1.00     1163     1884
+## 
+## ~workerId (Number of levels: 46) 
+##                          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS
+## sd(Intercept)                0.89      0.11     0.69     1.13 1.00     1164
+## sd(blockpost)                0.46      0.12     0.22     0.70 1.01      958
+## cor(Intercept,blockpost)    -0.52      0.19    -0.83    -0.07 1.00     2642
+##                          Tail_ESS
+## sd(Intercept)                1781
+## sd(blockpost)                1283
+## cor(Intercept,blockpost)     2078
+## 
+## Population-Level Effects: 
+##                                     Estimate Est.Error l-95% CI u-95% CI Rhat
+## Intercept                               0.92      0.34     0.26     1.55 1.01
+## blockpost                              -0.11      0.14    -0.38     0.16 1.00
+## conditiondentMbiasing                   0.04      0.24    -0.44     0.54 1.00
+## vot                                     0.13      0.01     0.10     0.16 1.00
+## blockpost:conditiondentMbiasing        -0.50      0.18    -0.85    -0.14 1.00
+## blockpost:vot                          -0.00      0.01    -0.02     0.01 1.00
+## conditiondentMbiasing:vot               0.01      0.01    -0.01     0.02 1.00
+## blockpost:conditiondentMbiasing:vot    -0.01      0.01    -0.03     0.00 1.00
+##                                     Bulk_ESS Tail_ESS
+## Intercept                                908     1481
+## blockpost                               2216     2344
+## conditiondentMbiasing                   1219     1822
+## vot                                     1179     1868
+## blockpost:conditiondentMbiasing         2367     2875
+## blockpost:vot                           3174     3370
+## conditiondentMbiasing:vot               3179     3145
+## blockpost:conditiondentMbiasing:vot     2725     2533
+## 
+## Samples were drawn using sampling(NUTS). For each parameter, Bulk_ESS
+## and Tail_ESS are effective sample size measures, and Rhat is the potential
+## scale reduction factor on split chains (at convergence, Rhat = 1).
+```
+
+
+---
+# Analysis
+## Test data - Bayesian approach
+
+- let's take a closer look at our posterior estimates
+
+
+
+
+
+.pull-left[
+![](final_presentation_files/figure-html/unnamed-chunk-1-1.png)&lt;!-- --&gt;
+
+]
+
+.pull-right[
+![](final_presentation_files/figure-html/unnamed-chunk-2-1.png)&lt;!-- --&gt;
+]
+
+
+---
+# Takeaways
+
+- in the end, the results from both the bayesian and frequentist models were the same
+- although running the frequentist model did take a bit more computational power than others because it included random slopes for the blocks by subject
+  - if it hadn't been able to converge, then the bayesian model would've really been necessary
+
+---
+# References
+
+Connine, C. M., Blasko, D. G., &amp; Hall, M. (1991). Effects of subsequent sentence context in auditory word recognition: Temporal and linguistic constrainst. Journal of Memory and Language, 30(2), 234-250.
+
+Eisner, F., &amp; McQueen, J. M. (2005). The specificity of perceptual learning in speech
+processing. Perception &amp; Psychophysics, 67(2), 224–238.
+
+Kraljic, T., &amp; Samuel, A. G. (2005). Perceptual learning for speech: Is there a return to
+normal? Cognitive Psychology, 51(2), 141–178.
+
+Norris, D., McQueen, J. M., &amp; Cutler, A. (2003). Perceptual learning in speech. Cognitive
+Psychology, 47(2), 204–238.
+
+
+
+
+
+
 
 
 

@@ -46,10 +46,9 @@ library(ProbBayes)
 ```
 
 
-```{r load-data}
+```{r load-data, include=FALSE}
 
 # load some data that i'll need real quick
-
 temp <- read_csv("data/batch1-test.csv") 
 
 # releveld w/pre:tent-biasing as the intercept
@@ -99,8 +98,6 @@ nrow(post_test)
 
 Pre-test --> Recalibration of some sort --> Post-test (yay! learning hopefully)
 
-<!-- insert pic of the process -->
-
 ---
 
 # Methods 
@@ -114,6 +111,11 @@ Pre-test --> Recalibration of some sort --> Post-test (yay! learning hopefully)
 
 - the critical sentences were taken from a previous study examining semantic right context effects on sentence comprehension and were re-recorded by one female speaker of American English (not me)
   - Connine et al. (1991)
+  
+- **importantly**, participants were separated into two biasing conditions:
+  - /t/-biasing and /d/-biasing
+  - in these conditions, the ambiguous region of the vot continuuum was disambiguated through either /t/ or /d/-biasing semantic contexts
+
 ---
 
 # Methods
@@ -139,12 +141,14 @@ Pre-test --> Recalibration of some sort --> Post-test (yay! learning hopefully)
 ## First, let's take a look at our raw data to get an idea of what it looks like 
 
 ```{r glimpse-data}
-head(test, n=10)
+test %>% 
+  select(-workerId) %>% 
+  head(n=10)
 ```
 
+---
 
-```{r visualize}
-
+```{r visualize, echo=FALSE, fig.width= 10}
 ggplot(data = test,
        aes(x=vot, y=resp_t, color = condition)) +
   # uncomment to see the actual data points instead of just the mean
@@ -157,45 +161,41 @@ ggplot(data = test,
   mdthemes::md_theme_bw() +
   theme(text=element_text(size=11, family = "Times"))
 
-```
 
+```
 
 ---
 # Analysis (the important part)
-## Bayesian vs. Frequentist analysis of the pre/post-test data
+## Bayesian vs. Frequentist analysis of the test data
 
-- utilized a Bayesian multi-level model (using brms) and a Frequentist model using (lme4)
+- utilized a multi-level Bayesian model (using brms) and a Frequentist model using (lme4)
 
 - we are utilizing a multi-level logistic regression because...
   - the data is looking at the proportion of /t/-responses (for pre/post tests)
-  - and accuracy along with proportion /t/-responses (for exposure)
+  
 - multi-level because...
-  - we're interested in group-level effects since it's repeated measures and because we want to look at within-participant effects
+  - we're interested in group-level effects since we want to look at within-participant and across-condition
   
 ---
+
 # Analysis
-## Bayesian vs. Frequentist analysis of the pre/post-test data
-
-.Large[$$\hat{y} = \alpha + {\beta}{X} + {u}{Z} + \epsilon $$]
-
-- recall the equation for MLM
-
-
----
-# Analysis
-## Test data
-
-- Frequentist approach: 
+## Test data - Frequentist approach: 
 
 - in order to compare the pre- and post-test, I used lme4 to run the following model: 
-  - `glmer(resp_t ~ block * condition * vot + (block | workerId) + (1 | stimulus), data = test, family = "binomial"(link = "logit")`
+
+``` 
+glmer(resp_t ~ block * condition * vot + 
+          (block | workerId) + 
+          (1 | stimulus), 
+          data = test, family = "binomial"(link = "logit") 
+```
   
-  - taking this apart:
+- taking this apart:
     - glmer: a generali**zed** multi-level regression model 
     - outcome variable: proportion of /t/ responses
     - fixed effects: block (pre vs. post), condition (tent or dent-biasing), and vot
     - random effects: workerId, item, block
-      - specifically, random intercepts by item and subject and by subject random slopes for blocks
+      - specifically, random intercepts by item and subject and random slopes for blocks across subjects
 
 ```{r frequentist, eval=FALSE, include=FALSE}
 # convert to probability: logit2prob <- function(logit){
@@ -233,20 +233,21 @@ freq_anova <-  anova(freq_analysis_1, freq_analysis_2 , freq_analysis_full, test
 ---
 
 # Analysis
-## Test data
+## Test data - Frequentist approach: 
 
-- Let's take a look at the output
-  - things to consider:
-      - the vot was centered around the mean
-      - the intercept is pre-test and "tent"-biasing
-  - significant effects:
-    - interaction (yay)
-    - vot (expected)
-    - intercept (mean: (prob) 0.7267025)
-      - the probability of /t/ response in the pre-test and tent-biasing condition given a vot of 50 (remember it's centered around 0 here)
-      - which isn't great because around the center should be ambiguous but that's a problem for future me
+Let's take a look at the output
+- things to consider:
+    - the vot was centered around the mean
+    - the intercept is pre-test and "tent"-biasing
+- "significant" effects:
+  - interaction
+  - vot (expected)
+  - intercept (mean: (prob) 0.7267025)
+    - the probability of /t/ response in the pre-test and tent-biasing condition given a vot of 50
 
-```{r frequentist-summary}
+---
+
+```{r frequentist-model, include=FALSE}
 # adding in a random slope and lets goooo
 freq_analysis_full <- glmer(resp_t ~ block * condition * vot +
                                   (block | workerId) +
@@ -255,21 +256,30 @@ freq_analysis_full <- glmer(resp_t ~ block * condition * vot +
                                   control=glmerControl(optimizer="bobyqa",
                                   optCtrl=list(maxfun=2e5)))
 # Let's take a look at the summary for the full model 
-freq_summary <- summary(freq_analysis_full)
+
 ```
+
+
+```{r frequentist-summary, echo=FALSE}
+freq_summary <- summary(freq_analysis_full)
+freq_summary
+
+qqnorm(summary(freq_analysis_2)$residuals)
+
+ggplot() +
+  geom_density(x = as.numeric(freq_summary$residuals))
+
+```
+
 
 
 ---
 # Analysis
-# test data
+## Test data - Bayesian approach
 
-- Bayesian approach: 
-
-- alright, this is very similar, but we're going to make a few adjustments. 
-  - `brm(resp_t ~ block * condition * vot + (block | workerId) + (1 | stimulus), data = test, family = "bernoulli"(link = "logit")`
   
 ```{r bayesian, eval=FALSE, include=FALSE}
-#### Bayesian Modeling 
+#### Bayesian Modeling (unnecessary for presentation)
 
 # intercept model
 bayes_analysis_int <- brm(resp_t ~ 1, data = test, family = "bernoulli"(link = "logit"))
@@ -291,10 +301,11 @@ bayes_analysis_2 <- brm(resp_t ~ block * condition * vot +
                                   cores = getOption("mc.cores", 4),
                                   save_pars = save_pars(all = T))
 summary(bayes_analysis_2)
-
 ```
 
-```{r bayesian-summary}
+
+
+```{r bayesian-model, include=FALSE}
 # finally, random intercepts and random slope for block
 bayes_analysis_full <- brm(resp_t ~ block * condition * vot +
                                   (block | workerId) +
@@ -304,6 +315,27 @@ bayes_analysis_full <- brm(resp_t ~ block * condition * vot +
                                             prior("normal(0,1", class = "Intercept")), # setting priors (remember -4 to 4)
                                   cores = getOption("mc.cores", 4),
                                   save_pars = save_pars(all = T))
+```
+
+
+- alright, this is very similar, but we're going to make a few adjustments. 
+- setting priors:
+  - given that it's on a logistic scale [-inf, inf] (but basically [-4,4]) we can set the intercept prior as a normal distribution centered around 0 with a standard deviation of 1 and population level priors as a normal distribution centered around 0 with sds of 0.5 
+  - (bernoulli is just a special case of binomial dist w/two outcomes)
+
+```
+brm(resp_t ~ block * condition * vot + 
+                                  (block | workerId) +
+                                  (1 | stimulus),
+                                  data = test, family = "bernoulli"(link = "logit"), 
+                                  prior = c(prior("normal(0,0.5)", class = "b"), 
+                                            prior("normal(0,1", class = "Intercept")), 
+                                  save_pars = save_pars(all = T)) 
+```
+
+---
+
+```{r bayesian-summary, echo=FALSE}
 bayes_summary <- summary(bayes_analysis_full)
 bayes_summary
 ```
@@ -311,15 +343,28 @@ bayes_summary
 
 ---
 # Analysis
-# test data
+## Test data - Bayesian approach
 
 - let's take a closer look at our posterior estimates
 
-```{r parameter-estimates}
+```{r rope, include=FALSE}
+# possible multi-collinearity between b_blockpost.conditiondentMbiasing.vot and b_conditiondentMbiasing.vot (r = 0.75). This might lead to inappropriate results.
+ROPE <- bayestestR::rope(bayes_analysis_full,
+             range = "default", 
+             ci = 0.95, 
+             ci_method = "HDI", # or ETI - forgot what the difference is lol
+             effects = "all",
+             components = "all")
+```
+
+```{r parameter-estimates, include=FALSE}
 # ROPE calculated as: [-0.18, 0.18]
 posterior_table <- as_tibble(bayes_analysis_full)
+```
 
-p1 <- posterior_table %>% 
+
+```{r echo=FALSE}
+posterior_table %>% 
   select(c("b_Intercept":"b_blockpost:conditiondentMbiasing:vot")) %>% 
   pivot_longer(everything(), names_to = "parameter", values_to = "estimate") %>% 
   ggplot(., aes(x = estimate, y = parameter)) +
@@ -330,7 +375,12 @@ p1 <- posterior_table %>%
     theme(text=element_text(size=11, family = "Times")) + 
     scale_fill_manual(values = c("gray80", "skyblue"))
 
-p2 <- posterior_table %>% 
+```
+
+---
+
+```{r echo=FALSE}
+posterior_table %>% 
   select("b_Intercept", "b_blockpost:conditiondentMbiasing") %>% 
   pivot_longer(everything(), names_to = "parameter", values_to = "estimate") %>% 
   ggplot(., aes(x = estimate, y = parameter, fill = stat(abs(x) < .18))) +
@@ -340,129 +390,45 @@ p2 <- posterior_table %>%
     mdthemes::md_theme_bw() +
     theme(text=element_text(size=11, family = "Times")) + 
     scale_fill_manual(values = c("gray80", "skyblue"))
-
-# not relevant for our current purposes
-# mcmc_hist(posterior_table, pars = c("b_Intercept", "b_blockpost:conditiondentMbiasing"), size = 1.5, alpha = 0.5)
 ```
 
-p1 + p2
 
 ---
-```{r rope}
-# possible multi-collinearity between b_blockpost.conditiondentMbiasing.vot and b_conditiondentMbiasing.vot (r = 0.75). This might lead to inappropriate results.
-ROPE <- bayestestR::rope(bayes_analysis_full,
-             range = "default", 
-             ci = 0.95, 
-             ci_method = "HDI", # or ETI - forgot what the difference is lol
-             effects = "all",
-             components = "all")
-```
+# Statistical Takeaways
 
-# Analysis
-# Pre-data
-- given out estimates inside ROPE, really only the Intercept and the interaction between the post-block and condition (`blockpost.conditiondentMbiasing`)
-  
-`r ROPE`
+- in the end, the results from both the bayesian and frequentist models were the same:
+  - the strongest predictor was the interaction term between condition and block which was expected
+
+
+- although running the frequentist model did take a bit more computational power than others because it included random slopes for the blocks by subject
+  - if it hadn't been able to converge, then the bayesian model would've really been necessary
 
 ---
+# Theoretical Takeaways
 
-# Analysis
-## Comparisons
-
-.pull-left{
-`r freq_summary`
-}
-.pull-right{
-`r bayes_summary`
-}
-
-
-<!-- LEFT OFF HERE -->
-
-```{r IN-PROGRESS posterior-samples, eval=FALSE, include=FALSE}
-#### Model comparison 
-waic(bayes_analysis_2 , bayes_analysis_full) 
-bayes_factor(bayes_analysis_2, bayes_analysis_full)
-
-# take a closer look at the priors
-# prior_summary(bayes_analysis_full)
-
-# table of the posterior estimates
-# posterior_table <- as_tibble(bayes_analysis_full)
-
-get_variables(bayes_analysis_full)
-
-
-cat_plot <- bayes_analysis_full %>% 
-  plot(
-    combo = c("hist", "trace"), widths = c(1, 1.5),
-    theme = theme_bw(base_size = 16)
-  )
-
-cat_plot_1 <-  cat_plot[1] # nice looks legit 
-
-# posterior predictive checks
-
-yrep <- posterior_predict(bayes_analysis_full)
-y <- as.numeric(test$resp_t)
-
-# i have no idea what these graphs are supposed to mean
-test %>% 
-  ppc_dens_overlay(test$resp_t, yrep)
-
-color_scheme_set("darkgray")
-brms::pp_check(bayes_analysis_2, type = "dens_overlay", nsamples = 500, resp = "resp_t") 
-
-# another attempt at a spaghetti plot ㅠㅠ
-test %>%
-    add_fitted_samples(bayes_analysis_full, newdata = ., n = 100) %>%
-    mutate(estimate = plogis(estimate) ) %>%
-    ggplot(aes(x = vot, y = estimate, group = .iteration) ) +
-    geom_line(aes(y = estimate), size = 0.5, alpha = 0.1) +
-    facet_wrap(~condition, nrow = 2) +
-    theme_bw(base_size = 20) + labs(x = "Reminder", y = "Estimate")
-
-
-# attempting to take samples from the posterior
-draws_posterior <- test %>%
-  tidybayes::add_fitted_draws(bayes_analysis_full, n = 100, scale = "response") 
-
-draws_posterior <- as.data.frame(draws_posterior)
-  
-# and trying to plot the values (resp_t) along vot
-ggplot(draws_posterior) +
-  aes(x = vot, y = .value) +
-  geom_line(aes(group = .draw), alpha = .2) +
-  geom_point(
-    aes(y = resp_t, x = vot),
-    color = "#cc0033", size = 4, 
-    data = test
-  ) +
-  theme(
-    axis.ticks = element_blank(), 
-    axis.text = element_blank(), 
-    axis.title = element_blank()
-  ) 
-
-# really not going well here lol
-test %>% 
-  ggplot(., aes(x = vot, y = resp_t)) + 
-    geom_abline(data = sample_n(posterior_table, 250), color = "grey80", 
-      alpha = 0.2, size = 1, 
-      aes(intercept = b_Intercept, slope = `b_blockpost:conditiondentMbiasing`)) + 
-    geom_point(pch = 21, fill = "black", size = 5, color = "white") + 
-    geom_abline(color = "white", size = 3.5, 
-      intercept = fixef(bayes_analysis_full)[1, 1], slope = fixef(bayes_analysis_full)[6, 1]) +
-    geom_abline(color = "darkred", size = 1.5, 
-      intercept = fixef(bayes_analysis_full)[1, 1], slope = fixef(bayes_analysis_full)[6, 1]) 
-
-# trying to pull out values from the summary output
-fixef(bayes_analysis_full)[1, 1]
-fixef(bayes_analysis_full)[2, 1]
+- it looks like there was some effect of learning between the pre and post tests
+- but, keep in mind that it really doesn't look like the ambiguous region was actually ambiguous and was therefore already biasing people towards /t/ responses before even completing the exposure phase
+  - because of this, there is an effect in the post-condition but only for those in the /d/-biasing condition really
 
 
 
-```
+---
+# References
+
+Connine, C. M., Blasko, D. G., & Hall, M. (1991). Effects of subsequent sentence context in auditory word recognition: Temporal and linguistic constrainst. Journal of Memory and Language, 30(2), 234-250.
+
+Eisner, F., & McQueen, J. M. (2005). The specificity of perceptual learning in speech
+processing. Perception & Psychophysics, 67(2), 224–238.
+
+Kraljic, T., & Samuel, A. G. (2005). Perceptual learning for speech: Is there a return to
+normal? Cognitive Psychology, 51(2), 141–178.
+
+Norris, D., McQueen, J. M., & Cutler, A. (2003). Perceptual learning in speech. Cognitive
+Psychology, 47(2), 204–238.
+
+
+
+
 
 
 
