@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="" xml:lang="">
   <head>
-    <title>Right contex effects and adaptation of stop consonants (in English)</title>
+    <title>Frequentist and Bayesian analyses of Right contex Effects on adaptation of stop consonants (in English)</title>
     <meta charset="utf-8" />
     <meta name="author" content="Joselyn Rodriguez" />
-    <meta name="date" content="2021-04-28" />
+    <meta name="date" content="2021-04-29" />
     <script src="libs/header-attrs/header-attrs.js"></script>
     <link href="libs/remark-css/default.css" rel="stylesheet" />
     <link href="libs/remark-css/rutgers.css" rel="stylesheet" />
@@ -14,31 +14,20 @@
     <textarea id="source">
 class: center, middle, inverse, title-slide
 
-# Right contex effects and adaptation of stop consonants (in English)
+# Frequentist and Bayesian analyses of Right contex Effects on adaptation of stop consonants (in English)
 ### Joselyn Rodriguez
 ### Rutgers University
-### 2021-04-28
+### 2021-04-29
 
 ---
 
 
-&lt;!-- 
-
-#### TODO 
+&lt;!-- to dos 
 
 
-1. Relevel variables.
-  - the base factor should be /t/-biasing
-  - make sure VOT is centered correctly
-  
-2. Calculate Rope
-
-3. Plot posterior estimates
-
-4. Actually set your priors
-
+make sure no output is seen for things it shouldnt be seen
+make fig size for bayes diagnostic smaller
 --&gt;
-
 
 
 
@@ -137,7 +126,7 @@ test %&gt;%
 
 ---
 
-![](final_presentation_files/figure-html/visualize-1.png)&lt;!-- --&gt;
+&lt;img src="final_presentation_files/figure-html/visualize-1.png" width="720" /&gt;
 
 ---
 # Analysis (the important part)
@@ -150,7 +139,17 @@ test %&gt;%
   
 - multi-level because...
   - we're interested in group-level effects since we want to look at within-participant and across-condition
-  
+
+---
+# Analysis (the important part)
+## Bayesian vs. Frequentist analysis of the test data
+
+- For each model, we'll walk through:
+    - defining the model
+    - model comparison
+    - results
+    - diagnostics
+
 ---
 
 # Analysis
@@ -168,11 +167,24 @@ glmer(resp_t ~ block * condition * vot +
 - taking this apart:
     - glmer: a generali**zed** multi-level regression model 
     - outcome variable: proportion of /t/ responses
+    - all categorical effects were dummy coded (although I want to change this to simple effect coding)
     - fixed effects: block (pre vs. post), condition (tent or dent-biasing), and vot
     - random effects: workerId, item, block
       - specifically, random intercepts by item and subject and random slopes for blocks across subjects
+      
+---
+# Analysis
+## Test data - Frequentist approach: 
 
+- **Note** Model comparisons were completed using (planned) stepwise anova comparisons between models incorporating more complex random effects
+  - including the additional random slope led to a slighly better model
 
+```
+                   npar    AIC    BIC  logLik deviance   Chisq Df Pr(&gt;Chisq)    
+freq_analysis_1       9 6092.2 6158.5 -3037.1   6074.2                          
+freq_analysis_2      10 5607.7 5681.4 -2793.8   5587.7 486.462  1  &lt; 2.2e-16 ***
+freq_analysis_full   12 5599.8 5688.3 -2787.9   5575.8  11.863  2   0.002655 ** 
+```
 
 ---
 
@@ -183,10 +195,10 @@ Let's take a look at the output
 - things to consider:
     - the vot was centered around the mean
     - the intercept is pre-test and "tent"-biasing
-- significant effects:
-  - interaction (yay)
+- "significant" effects:
+  - interaction
   - vot (expected)
-  - intercept (mean: (prob) 0.7267025)
+  - intercept (mean: 0.7267025 prob)
     - the probability of /t/ response in the pre-test and tent-biasing condition given a vot of 50
 
 ---
@@ -243,14 +255,18 @@ Let's take a look at the output
 ```
 
 
+---
+#### Diagnostics 
+
+- unfortunately, the residuals don't look particularly normal though
+- (none of the models' residuals looked normal)
+
+&lt;img src="final_presentation_files/figure-html/unnamed-chunk-1-1.png" width="504" /&gt;
+
 
 ---
 # Analysis
 ## Test data - Bayesian approach
-
-  
-
-
 
 
 
@@ -258,7 +274,7 @@ Let's take a look at the output
 
 - alright, this is very similar, but we're going to make a few adjustments. 
 - setting priors:
-  - given that it's on a logistic scale [-inf, inf] (but basically [-4,4]) we can set the intercept prior as a normal distribution centered around 0 with a standard deviation of 1 and population level priors as a normal distribution centered around 0 with sds of 0.5 
+  - given that it's on a logistic scale [-inf, inf] (but basically [-4,4]) we can set the intercept prior as a `\(\mathcal{N}\)`(0,1) and population level priors as a `\(\mathcal{N}\)`(0, 0.5)
   - (bernoulli is just a special case of binomial dist w/two outcomes)
 
 ```
@@ -269,6 +285,18 @@ brm(resp_t ~ block * condition * vot +
                                   prior = c(prior("normal(0,0.5)", class = "b"), 
                                             prior("normal(0,1", class = "Intercept")), 
                                   save_pars = save_pars(all = T)) 
+```
+
+---
+# Analysis
+## Test data - Bayesian approach: 
+
+- **Note** Model comparisons were run using waic and comparison of elpdf_diff finding the full model to be slightly better (lower WAIC)
+
+```
+elpd_diff                     se_diff
+bayes_analysis_full  0.0       0.0   
+bayes_analysis_2    -8.5       4.6
 ```
 
 ---
@@ -285,37 +313,37 @@ brm(resp_t ~ block * condition * vot +
 ## Group-Level Effects: 
 ## ~stimulus (Number of levels: 16) 
 ##               Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## sd(Intercept)     1.17      0.25     0.80     1.76 1.00     1163     1884
+## sd(Intercept)     1.18      0.26     0.79     1.80 1.00      874     1465
 ## 
 ## ~workerId (Number of levels: 46) 
 ##                          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS
-## sd(Intercept)                0.89      0.11     0.69     1.13 1.00     1164
-## sd(blockpost)                0.46      0.12     0.22     0.70 1.01      958
-## cor(Intercept,blockpost)    -0.52      0.19    -0.83    -0.07 1.00     2642
+## sd(Intercept)                0.89      0.11     0.69     1.14 1.00     1106
+## sd(blockpost)                0.46      0.12     0.21     0.70 1.00      937
+## cor(Intercept,blockpost)    -0.51      0.20    -0.82    -0.08 1.00     2020
 ##                          Tail_ESS
-## sd(Intercept)                1781
-## sd(blockpost)                1283
-## cor(Intercept,blockpost)     2078
+## sd(Intercept)                1765
+## sd(blockpost)                 820
+## cor(Intercept,blockpost)     1418
 ## 
 ## Population-Level Effects: 
 ##                                     Estimate Est.Error l-95% CI u-95% CI Rhat
-## Intercept                               0.92      0.34     0.26     1.55 1.01
+## Intercept                               0.93      0.34     0.26     1.59 1.00
 ## blockpost                              -0.11      0.14    -0.38     0.16 1.00
-## conditiondentMbiasing                   0.04      0.24    -0.44     0.54 1.00
+## conditiondentMbiasing                   0.04      0.24    -0.44     0.52 1.00
 ## vot                                     0.13      0.01     0.10     0.16 1.00
-## blockpost:conditiondentMbiasing        -0.50      0.18    -0.85    -0.14 1.00
+## blockpost:conditiondentMbiasing        -0.51      0.19    -0.87    -0.15 1.00
 ## blockpost:vot                          -0.00      0.01    -0.02     0.01 1.00
 ## conditiondentMbiasing:vot               0.01      0.01    -0.01     0.02 1.00
-## blockpost:conditiondentMbiasing:vot    -0.01      0.01    -0.03     0.00 1.00
+## blockpost:conditiondentMbiasing:vot    -0.01      0.01    -0.03     0.01 1.00
 ##                                     Bulk_ESS Tail_ESS
-## Intercept                                908     1481
-## blockpost                               2216     2344
-## conditiondentMbiasing                   1219     1822
-## vot                                     1179     1868
-## blockpost:conditiondentMbiasing         2367     2875
-## blockpost:vot                           3174     3370
-## conditiondentMbiasing:vot               3179     3145
-## blockpost:conditiondentMbiasing:vot     2725     2533
+## Intercept                                913     1551
+## blockpost                               2198     2465
+## conditiondentMbiasing                   1040     1897
+## vot                                      988     1321
+## blockpost:conditiondentMbiasing         1894     2415
+## blockpost:vot                           2727     3137
+## conditiondentMbiasing:vot               2923     2926
+## blockpost:conditiondentMbiasing:vot     2535     2321
 ## 
 ## Samples were drawn using sampling(NUTS). For each parameter, Bulk_ESS
 ## and Tail_ESS are effective sample size measures, and Rhat is the potential
@@ -327,28 +355,89 @@ brm(resp_t ~ block * condition * vot +
 # Analysis
 ## Test data - Bayesian approach
 
+.pull-left[
 - let's take a closer look at our posterior estimates
 
+]
+---
 
 
 
+
+
+
+&lt;img src="final_presentation_files/figure-html/unnamed-chunk-2-1.png" width="720" /&gt;
+
+---
+
+
+
+- focusing in on the parameters outside of ROPE
+
+&lt;img src="final_presentation_files/figure-html/unnamed-chunk-3-1.png" width="720" /&gt;
+---
+
+#### diagnostics
+
+- posterior predictive checks 
 
 .pull-left[
-![](final_presentation_files/figure-html/unnamed-chunk-1-1.png)&lt;!-- --&gt;
-
+&lt;img src="final_presentation_files/figure-html/unnamed-chunk-4-1.png" width="504" /&gt;
 ]
 
 .pull-right[
-![](final_presentation_files/figure-html/unnamed-chunk-2-1.png)&lt;!-- --&gt;
+&lt;img src="final_presentation_files/figure-html/unnamed-chunk-5-1.png" width="504" /&gt;
 ]
 
 
 ---
-# Takeaways
+# Statistical Takeaways
 
-- in the end, the results from both the bayesian and frequentist models were the same
+- in the end, the results from both the bayesian and frequentist models were the same:
+  - the strongest predictor was the interaction term between condition and block which was expected
+
+.pull-left[
+```
+Population-Level Effects: 
+                                Estimate 
+Intercept                            0.92      
+blockpost                           -0.11     
+conditiondentMbiasing                0.05      
+vot                                  0.13      
+blockpost:conditiondentMbiasing     -0.50      
+blockpost:vot                       -0.00     
+conditiondentMbiasing:vot            0.01      
+blockpost:conditiondentMbiasing:vot -0.01   
+```
+]
+
+.pull-right[
+```
+Fixed effects:
+                                   Estimate   
+(Intercept)                          0.9779  
+blockpost                           -0.0790  
+conditiondent-biasing                0.1120       
+vot                                  0.1309   
+blockpost:conditiondent-biasing     -0.5853   
+blockpost:vot                       -0.0044      
+conditiondent-biasing:vot            0.0096      
+blockpost:conditiondent-biasing:vot -0.0140   
+```
+]
+
 - although running the frequentist model did take a bit more computational power than others because it included random slopes for the blocks by subject
   - if it hadn't been able to converge, then the bayesian model would've really been necessary
+
+---
+
+# Experimental Takeaways
+
+- it looks like there was some effect of learning between the pre and post tests
+- but, keep in mind that it really doesn't look like the ambiguous region was actually ambiguous and was therefore already biasing people towards /t/ responses before even completing the exposure phase
+  - because of this, there is an effect in the post-condition but only for those in the /d/-biasing condition really
+
+
 
 ---
 # References
