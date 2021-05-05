@@ -1,50 +1,17 @@
 ---
-title             : "The title"
+title             : "Semantic right context leads to perceptual learning of stop consonants in English"
 shorttitle        : "Title"
 
 author: 
-  - name          : "First Author"
+  - name          : "Joselyn Rodriguez"
     affiliation   : "1"
     corresponding : yes    # Define only one corresponding author
-    address       : "Postal address"
-    email         : "my@email.com"
-    role:         # Contributorship roles (e.g., CRediT, https://casrai.org/credit/)
-      - Conceptualization
-      - Writing - Original Draft Preparation
-      - Writing - Review & Editing
-  - name          : "Ernst-August Doelle"
-    affiliation   : "1,2"
-    role:
-      - Writing - Review & Editing
+    address       : 
+    email         : ""
+    role:        
+authornote:
 
-affiliation:
-  - id            : "1"
-    institution   : "Wilhelm-Wundt-University"
-  - id            : "2"
-    institution   : "Konstanz Business School"
-
-authornote: |
-  Add complete departmental affiliations for each author here. Each new line herein must be indented, like this line.
-
-  Enter author note here.
-
-abstract: |
-  One or two sentences providing a **basic introduction** to the field,  comprehensible to a scientist in any discipline.
-  
-  Two to three sentences of **more detailed background**, comprehensible  to scientists in related disciplines.
-  
-  One sentence clearly stating the **general problem** being addressed by  this particular study.
-  
-  One sentence summarizing the main result (with the words "**here we show**" or their equivalent).
-  
-  Two or three sentences explaining what the **main result** reveals in direct comparison to what was thought to be the case previously, or how the  main result adds to previous knowledge.
-  
-  One or two sentences to put the results into a more **general context**.
-  
-  Two or three sentences to provide a **broader perspective**, readily comprehensible to a scientist in any discipline.
-  
-  <!-- https://tinyurl.com/ybremelq -->
-  
+abstract: 
 keywords          : "keywords"
 wordcount         : "X"
 
@@ -66,86 +33,49 @@ output            : papaja::apa6_pdf
 ```{r setup, include = FALSE}
 library("papaja")
 r_refs("r-references.bib")
+
+# all the code for this file can be sourced here to make it a bit easier to work with
+
+source(here::here('code.R')) 
 ```
 
 ```{r analysis-preferences}
 # Seed for random number generation
-set.seed(42)
+set.seed(0613)
 knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
 ```
 
-
-```{r libraries}
-library(tidyverse)
-library(brms)
-library(broom)
-library(tidybayes)
-```
-
-```{r}
-# quick test using brms
-
-# load data
-test <- read_csv("data/batch1-test.csv")
-
-pre_test <- test %>% 
-  filter(block == "pre")
-# sanity check nrow(pre_test)
-
-post_test <- test %>% 
-  filter(block == "post")
-# sanity check nrow(post_test)
-
-cont_tasks <- ggplot(data = test,
-       aes(x=vot, y=resp_t, color = block, group = workerId)) +
-  # uncomment to see the actual data points instead of just the mean
-  # geom_point(position=position_jitter(h = 0.1), alpha=0.1) +
-  geom_line(stat="summary", fun = mean) +
-  geom_vline(xintercept = 50, linetype = "dashed", aes( color = "red")) +
-  # the line below shows where it seems to actually be ambiguous 
-  # geom_vline(xintercept = 40, linetype = "dashed", color = "blue", alpha = 0.5) +
-  facet_wrap( . ~ condition) +
-  ylab("Proportion of /t/ response") + xlab("VOT (ms)") +
-  labs(title = "*Pre- and Post Continuum 'Tent' Responses*", tag = "Figure 1") +
-  mdthemes::md_theme_bw() +
-  theme(text=element_text(size=11, family = "Times"))
-cont_tasks
-
-# quick model
-test_model <- brms::brm(resp_t ~ block * condition * vot +
-                              (block | workerId), # random intercept for workerId and slope for block 
-                              data = test, family = "bernoulli"(link = "logit"))
-
-
-# intercept model 
-int_model <- brm(resp_t ~ 1, data = test, family = binomial(link="logit"))
-summary(int_model)
-summary(test_model) 
-
-predictors <- as_tibble(int_model) %>% 
-  select(b_Intercept) %>% 
-  pivot_longer(everything(), names_to = "parameter", values_to = "estimate") %>% 
-  ggplot(., aes(x = estimate, y = parameter)) +
-    stat_halfeye()
-
-head(predictors)
-plot(test_model)
-launch_shinystan(test_model)
-pp_check(test_model)
-
-```
-
 # Methods
+This study followed standard procedures for conducting perceptual learning experiments online and was approved by the Institutional Review Board at Rutgers University. 
+
 
 ## Participants
+A total of 60 total participants (female: `r num_fem`) participated in this experiment and were recruited through Amazon's Mechanical Turk. Subjects were compensated at a rate of $5/30 minutes. The average age of participants was `r avg_age` (*Med* = `r med_age`, *SD* = `r sd_age`). 
 
-## Material
+## Materials
 
-## Procedure
+#### Stimuli
+The stimuli for the exposure phase of the experiment were new recordings of previous stimuli used in @[put in connine study]. These stimuli were re-recorded by a female native speaker of English. There were a total of 20 unique sentences with 3 repetitions for a total of 80 tokens. An example of a sentence is given below: 
+
+(1) Since the **tent** at the **camp** was removed, we were able to leave.
+
+
+As can be seen from this example, the ambiguous word, "tent", is encountered in the sentence and it is noot until a listener hears the word "camp" that follows several syllables later that they would be able to disambiguate the speaker's intended meaning. For the purposes of this study, since we were primarily interested in maximizing possible learning effects, we only used the "short-lag" sentences in which disambiguating information was provided around 3-5 syllables after encountering the word with the ambiguous segment. 
+
+In order to create the vot continuum, a recording of "the tent" was synthesized using Praat in order to create a "tent"-"dent" whose first segment ranged from 15 (/d/-like) to 85ms (/t/-like) in 5ms increments.  
+
+
+## Pre- and Post-tests
+This experiment utilized a standard perceptual learning paradigm (@norris_perceptual_2003). This consists of a pre-post two-alternative forced choice task and an exposure phase. In both the pre and post tests, participants are exposed to a /t/-/d/ continuum along vot embedded within the phrase "the tent" and were asked to respond whether they heard "tent" or "dent".
+
+## Exposure Phase
+
+<!-- make sure to go through this again and add in any more information and put it more into your own words -->
 
 ## Data analysis
-We used `r cite_r("r-references.bib")` for all our analyses.
+For the current purposes, only the analyses for the test phases will be reported. The 2AFC test data were analyzed using a Bayesian generalized multi-level regression with a logit-linking function. The analyses were conducted in R @[put in r reference] utilizing `stan` @[put in stan reference] via the R package `brms` @[reference  for brms]. For this analysis, proportion /t/-responses were modeled as function of the fixed effects: block (pre and post), condition (/t/-biasing and /d/-biasing), and vot (15-85ms). The categorical variables were dummy coded with the reference level for block set as "pre" and for condition as /t/-biasing. The continuous variable, vot, was centered in all analyses. Random effects were included as intercepts for subjects and items as well as random slopes for block (pre and post) by subject. A region of practical equivalence (ROPE) was established as ±0.18 around the point null value of 0. The model was fit using 2000 iterations (1,000 warm-up) and Hamiltonian Monte-Carlo sampling was carried out with 4 chains.
 
+For all models we report mean posterior point estimates for each parameter of interest, along with the 95% highest density interval (HDI) and the percent of the region of the HDI contained within the ROPE. We consider a posterior distribution for a parameter $\beta$ in which 95% of the HDI falls outside the ROPE as compelling evidence for a given effect.
 
 # Results
 

@@ -239,7 +239,6 @@ freq_analysis_full <- glmer(resp_t ~ block * condition * vot +
 summary(freq_analysis_full)
 ```
 
-
 ---
 #### Diagnostics 
 
@@ -263,7 +262,7 @@ bayes_analysis_full <- brm(resp_t ~ block * condition * vot +
                                   (1 | stimulus),
                                   data = test, family = "bernoulli"(link = "logit"), 
                                   prior = c(prior("normal(0,0.5)", class = "b"), # setting priors (remember -4 to 4)
-                                            prior("normal(0,1", class = "Intercept")), # setting priors (remember -4 to 4)
+                                            prior("normal(0,1)", class = "Intercept")), # setting priors (remember -4 to 4)
                                   cores = getOption("mc.cores", 4),
                                   save_pars = save_pars(all = T))
 
@@ -353,7 +352,7 @@ posterior_table %>%
 
 ```{r echo=FALSE, fig.width = 10}
 posterior_table %>% 
-  select("b_Intercept", "b_blockpost:conditiondentMbiasing") %>% 
+  select("b_Intercept", "b_vot", "b_blockpost:conditiondentMbiasing") %>% 
   pivot_longer(everything(), names_to = "parameter", values_to = "estimate") %>% 
   ggplot(., aes(x = estimate, y = parameter, fill = stat(abs(x) < .18))) +
     stat_halfeye() +  
