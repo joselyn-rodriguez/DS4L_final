@@ -31,19 +31,15 @@ library(tidyverse)
 #### Code for tidying the raw data sets 
 
 # block_id, trial, resp are all created variables
-data_full <- read_csv(here::here("data/data_deidentified.csv"), col_types = cols(sender = col_character(), 
-                                                          new_ID = col_character(), audioequip = col_character(), 
-                                                          sex = col_character(), ethnicity = col_character(), 
-                                                          race = col_character(), raceother = col_character(), 
-                                                          born = col_character(), parent = col_character(), 
-                                                          lang = col_character(), comments = col_character(), 
-                                                          age = col_number())) %>% 
-  select("new_ID","condition","stimulus","response","sender","sender_id","block", "duration", "item", "item_block", "time", "audioequip":"comments") %>% 
+data_full <- read_csv(here::here("data/data_deidentified.csv")) %>% 
+  select("new_ID","condition","stimulus","response","sender","sender_id","block", "duration", "item", "item_block", "time") %>% 
   filter(sender == "Sounds" | sender == "Response") %>% 
   mutate(block_id = substr(sender_id,1,2),
          resp_t = case_when(substr(response, 1,1) == "t" ~ "TRUE",
                             substr(response, 1,1) == "d" ~ "FALSE"),
          vot = substr(stimulus, 11, 12)) 
+
+
 
 questionnaire <- read_csv(here::here("data/data_deidentified.csv"), col_types = cols(sender = col_character(), 
                                                                                      new_ID = col_character(), audioequip = col_character(), 

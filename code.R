@@ -13,23 +13,6 @@ library(ProbBayes)
 ########################################################################
 
 
-#### TODO
-# 1. Re-level variables. [✓]
-# - the reference level should be /t/-biasing
-# - make sure VOT is centered correctly
-
-#2. Calculate Rope [✓]
-
-#3. Plot posterior estimates [✓]
-# - and do other posterior checks
-
-#4. Actually set your priors [✓]
-
-#5. Save brmsfit to file for faster access [✓]
-
-#6. Finish writeup []
-
-
 #### Load data and clean up a bit more
 test <- read_csv(here::here("data_tidy/data_test_tidy.csv")) %>%
             mutate(block = factor(block, levels=c("pre", "post")),   # re-factor to set reference levels
