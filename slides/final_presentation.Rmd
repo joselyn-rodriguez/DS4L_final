@@ -14,12 +14,6 @@ output:
       countIncrementalSlides: false
 ---
 
-<!-- to dos 
-
-
-make sure no output is seen for things it shouldnt be seen
-make fig size for bayes diagnostic smaller
--->
 
 ```{r setup, include=FALSE}
 options(htmltools.dir.version = FALSE)

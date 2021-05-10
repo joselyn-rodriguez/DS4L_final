@@ -45,7 +45,13 @@ data_full <- read_csv(here::here("data/data_deidentified.csv"), col_types = cols
                             substr(response, 1,1) == "d" ~ "FALSE"),
          vot = substr(stimulus, 11, 12)) 
 
-questionnaire <- data_full %>% 
+questionnaire <- read_csv(here::here("data/data_deidentified.csv"), col_types = cols(sender = col_character(), 
+                                                                                     new_ID = col_character(), audioequip = col_character(), 
+                                                                                     sex = col_character(), ethnicity = col_character(), 
+                                                                                     race = col_character(), raceother = col_character(), 
+                                                                                     born = col_character(), parent = col_character(), 
+                                                                                     lang = col_character(), comments = col_character(), 
+                                                                                     age = col_number())) %>% 
   select("sender", "new_ID", "audioequip":"comments") %>% 
   filter(sender == "Quesionnaire Form")
 

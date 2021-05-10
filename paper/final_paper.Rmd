@@ -45,13 +45,6 @@ source(here::here('code.R'))
 set.seed(0613)
 knitr::opts_chunk$set(cache.extra = knitr::rand_seed, 
                       fig.width = 5, fig.height = 4)
-
-avg_age                           
-med_age                        
-sd_age                                
-num_fem 
-num_male
-
 ```
 
 # Methods
