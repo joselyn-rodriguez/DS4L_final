@@ -1,8 +1,3 @@
-"0","# FINAL MODEL (marginally better fit): AIC: 6098 | BIC: 6142 
-test_model <- glmer(resp_t ~ block * condition + vot +
-                              (1| workerId),
-                              data = test, family = ""binomial"")
-"
-"2","Error in glmer(resp_t ~ block * condition + vot + (1 | workerId), data = test,  : 
-  could not find function ""glmer""
-"
+version https://git-lfs.github.com/spec/v1
+oid sha256:e40ce9b44b5aeb667d8d59653a178bcb489e93fab89daaf769499cd75935548f
+size 361

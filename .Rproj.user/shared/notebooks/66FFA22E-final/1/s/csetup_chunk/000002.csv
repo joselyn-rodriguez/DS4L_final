@@ -1,3 +1,3 @@
-"0","# APA markdown setup"
-"0","library(""papaja"")"
-"0","r_refs(""citations.bib"")"
+version https://git-lfs.github.com/spec/v1
+oid sha256:a771b34148f24fa7a70a77fa534e8e899ce82ce6b97b31b9e8a637fb56f93aae
+size 85
