@@ -77,7 +77,7 @@ For the current purposes, only the analyses for the test phases will be reported
 For all models we report mean posterior point estimates for each parameter of interest, along with the 95% highest density interval (HDI) and the percent of the region of the HDI contained within the ROPE. We consider a posterior distribution for a parameter $\beta$ in which 95% of the HDI falls outside the ROPE as compelling evidence for a given effect.
 
 # Results
-Model fits were determined through planned step-wise comparisons using the widely applicable information criterion (WAIC) and through posterior checks. Examination of the expected versus observed coefficient estimates suggest a good model fit to the data and are shown below in Figure 1.
+Model fits were determined through planned nested model comparisons using the widely applicable information criterion (WAIC) and through posterior checks. Examination of the expected versus observed coefficient estimates suggest a good model fit to the data and are shown below in Figure 1.
 
 ```{r estimate-plot, echo=FALSE}
 posterior_check +
