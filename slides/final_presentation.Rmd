@@ -44,7 +44,7 @@ library(ProbBayes)
 ```{r load-data, include=FALSE}
 
 # load some data that i'll need real quick
-temp <- read_csv("../data/batch1-test.csv") 
+temp <- read_csv(here::here("data_tidy/data_test_tidy.csv"))
 
 # releveld w/pre:tent-biasing as the intercept
 test <- temp %>% 
@@ -55,7 +55,7 @@ test <- temp %>%
       write_csv("data-tidy.csv")
 
 test %>% 
-  group_by(workerId) %>% 
+  group_by(new_ID) %>% 
   summarize(average = mean(resp_t), sd = sd(resp_t))
 
 ```
@@ -128,7 +128,6 @@ Pre-test --> Recalibration of some sort --> Post-test (yay! learning hopefully)
 
 ```{r glimpse-data}
 test %>% 
-  select(-workerId) %>% 
   head(n=10)
 ```
 
@@ -227,7 +226,7 @@ Let's take a look at the output
 
 ```{r frequentist-model, include=FALSE}
 freq_analysis_full <- glmer(resp_t ~ block * condition * vot +
-                                  (block | workerId) +
+                                  (block | newID) +
                                   (1 | stimulus),
                                   data = test, family = "binomial"(link = "logit"), 
                                   control=glmerControl(optimizer="bobyqa",
@@ -258,7 +257,7 @@ qqnorm(summary(freq_analysis_full)$residuals)
 ```{r bayesian-model, include=FALSE}
 # finally, random intercepts and random slope for block
 bayes_analysis_full <- brm(resp_t ~ block * condition * vot +
-                                  (block | workerId) +
+                                  (block | new_ID) +
                                   (1 | stimulus),
                                   data = test, family = "bernoulli"(link = "logit"), 
                                   prior = c(prior("normal(0,0.5)", class = "b"), # setting priors (remember -4 to 4)
