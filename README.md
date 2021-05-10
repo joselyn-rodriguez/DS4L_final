@@ -1,4 +1,4 @@
-This is the repository for my final project for DS4L. 
+≈This is the repository for my final project for DS4L. 
 
 How to use:
 
@@ -11,3 +11,8 @@ Notes:
 - The 'models.R' is the file that has the Bayesian models in it
 - The 'code.R' is the file that has the rest of the code that I used for my analysis in it and the visualizations, etc
 - The 'final_paper.Rmd' is the file that has the actual paper in it and pulls in the 'code.R' file
+
+Links:
+
+Final presentation: https://joselyn-rodriguez.github.io/DS4L_final/slides/final_presentation.html#1
+Final paper: 

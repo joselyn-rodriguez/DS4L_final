@@ -51,13 +51,13 @@ bayes_analysis_full <- readRDS(here::here("bayes_analysis_full.rds"))
 
 #### Descriptives
 test %>% 
-  group_by(workerId) %>% 
+  group_by(new_ID) %>% 
   summarize(average = mean(resp_t), sd = sd(resp_t)) 
 
 
 #### Double checking number of observations
-obs_test <- length(unique(test$workerId))
-obs_quest <- length(unique(test$workerId))
+obs_test <- length(unique(test$new_ID))
+obs_quest <- length(unique(test$new_ID))
 
 #### Getting demographic information
 avg_age = mean(questionnaire$age)                             # this is the average age of the participants
@@ -91,19 +91,19 @@ freq_analysis_int <- glm(resp_t ~ 1, data = test, family = "binomial"(link = "lo
 
 # including interaction and one random effect
 freq_analysis_1 <- glmer(resp_t ~ block * condition * vot +
-                           (1 | workerId),
+                           (1 | new_ID),
                            data = test, family = "binomial"(link = "logit"))
 
 # adding one more random effect
 freq_analysis_2 <- glmer(resp_t ~ block * condition * vot +
-                           (1 | workerId) +
+                           (1 | new_ID) +
                            (1 | stimulus),
                          data = test, family = "binomial"(link = "logit"), 
                          control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
 
 # adding in a random slope and lets goooo
 freq_analysis_full <- glmer(resp_t ~ block * condition * vot +
-                              (block | workerId) +
+                              (block | new_ID) +
                               (1 | stimulus),
                             data = test, family = "binomial"(link = "logit"), 
                             control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5))) # using an optimizer to help it converge
@@ -153,7 +153,7 @@ prior_sum <- prior_summary(bayes_analysis_full)
 # get your posteriors
 posterior_table <- as_tibble(bayes_analysis_full)
 
-posterior_check <- pp_check(bayes_analysis_full, stat = "dens_overlay")
+posterior_check <- pp_check(bayes_analysis_full)
 
 # calculating ROPE w/95% credible intervals
 ROPE <- bayestestR::rope(bayes_analysis_full,
@@ -170,8 +170,8 @@ full_posterior_est <- posterior_table %>%
   pivot_longer(everything(), names_to = "parameter", values_to = "estimate") %>% 
   ggplot(., aes(x = estimate, y = parameter, fill = stat(abs(x) < .18))) + # ROPE calculated as: [-0.18, 0.18]
   stat_halfeye() + 
-  geom_vline(xintercept = c(ROPE$ROPE_low, ROPE$ROPE_high), linetype = "dashed", color = "red") +
-  labs(title = "*Parameter estimates for Bayesian Model*", tag = "Figure 2") +
+  geom_vline(xintercept = c(ROPE$ROPE_low, ROPE$ROPE_high), linetype = "dashed", color = "skyblue") +
+  labs(title = "*Parameter estimates for Bayesian Model*") +
   mdthemes::md_theme_bw() +
   theme(text=element_text(size=11, family = "Times")) + 
   scale_fill_manual(values = c("gray80", "skyblue"))
@@ -183,21 +183,24 @@ sub_posterior_est <- posterior_table %>%
   ggplot(., aes(x = estimate, y = parameter, fill = stat(abs(x) < .18))) +
   stat_halfeye() +  
   geom_vline(xintercept = c(ROPE$ROPE_low, ROPE$ROPE_high), linetype = "dashed", color = "skyblue") +
-  labs(title = "*Parameter estimates for Bayesian Model*", tag = "Figure 2") +
+  labs(title = "*Parameter estimates for Bayesian Model*") +
   mdthemes::md_theme_bw() +
   theme(text=element_text(size=11, family = "Times")) + 
   scale_fill_manual(values = c("gray80", "skyblue"))
 
 
 # getting conditions for conditional mean 
-conditions <- conditions <- make_conditions(bayes_analysis_full, "block") 
+conditions <- make_conditions(bayes_analysis_full, "block") 
 
 # spaghetti plot of the expectations of the posterior predictive distribution 
 conditional_plot <- plot(conditional_effects(bayes_analysis_full,
                                              effects = "vot:condition",
                                              conditions = conditions,
                                              spaghetti = T,
-                                             method  = "posterior_epred"))
+                                             method  = "posterior_epred",
+                                             nsamples = 500), 
+                         main = "conditional effects of /t/-response", 
+                         sub = "Figure 4")
 
 
 

@@ -18,15 +18,15 @@ library(tidyverse)
 # num <-  1
 # id_lookup = tibble(workerId = unique(data_full$workerId), new_ID = unique(id_list))
 # 
-# data_raw <- read_csv(here::here("data/batch1.csv"), col_types = cols(sender = col_character(), 
-#                                                                      workerId = col_character(), audioequip = col_character(), 
-#                                                                      sex = col_character(), ethnicity = col_character(), 
-#                                                                      race = col_character(), raceother = col_character(), 
-#                                                                      born = col_character(), parent = col_character(), 
-#                                                                      lang = col_character(), comments = col_character(), 
-#                                                                      age = col_number())) %>% 
-#                         left_join(.,id_lookup, by = "workerId") %>%     # since none of the files include the workerIds anymore, this will not run 
-#                         select(-workerId)
+# data_raw <- read_csv(here::here("data/batch1.csv"), col_types = cols(sender = col_character(),
+#                                                                      workerId = col_character(), audioequip = col_character(),
+#                                                                      sex = col_character(), ethnicity = col_character(),
+#                                                                      race = col_character(), raceother = col_character(),
+#                                                                      born = col_character(), parent = col_character(),
+#                                                                      lang = col_character(), comments = col_character(),
+#                                                                      age = col_number())) %>%
+#                         left_join(.,id_lookup, by = "workerId") %>%     # since none of the files include the workerIds anymore, this will not run
+#                         select(-c(workerId, session, meta, url))
 
 #### Code for tidying the raw data sets 
 
@@ -63,5 +63,5 @@ data_test <- data_full %>%
 # write_csv(data_full, "data_tidy/data_full_tidy.csv")
 # write_csv(data_test, "data_tidy/data_test_tidy.csv")
 # write_csv(questionnaire, "data_tidy/questionnaire_tidy.csv")
-#write_csv(data_raw, "data/data_deidentified.csv")
+# write_csv(data_raw, "data/data_deidentified.csv")
 

@@ -38,7 +38,7 @@
 \IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
 \hypersetup{
   pdftitle={Semantic right context leads to perceptual learning of stop consonants in English},
-  pdfauthor={Joselyn Rodriguez1},
+  pdfauthor={Joselyn Rodriguez},
   pdflang={en-EN},
   pdfkeywords={keywords},
   hidelinks,
@@ -111,7 +111,7 @@
   {\section*{\protect\normalfont{\@title}}}
   {}{\typeout{Failed to patch title.}}
 \makeatother
-\shorttitle{Title}
+\shorttitle{Right Context Learning}
 \keywords{keywords\newline\indent Word count: X}
 \DeclareDelayedFloatFlavor{ThreePartTable}{table}
 \DeclareDelayedFloatFlavor{lltable}{table}
@@ -119,9 +119,6 @@
 \makeatletter
 \renewcommand{\efloat@iwrite}[1]{\immediate\expandafter\protected@write\csname efloat@post#1\endcsname{}}
 \makeatother
-\usepackage{lineno}
-
-\linenumbers
 \usepackage{csquotes}
 \ifXeTeX
   % Load polyglossia as late as possible: uses bidi with RTL langages (e.g. Hebrew, Arabic)
@@ -158,15 +155,13 @@
 \newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
 
 \title{Semantic right context leads to perceptual learning of stop consonants in English}
-\author{Joselyn Rodriguez\textsuperscript{1}}
+\author{Joselyn Rodriguez\textsuperscript{}}
 \date{}
 
 
 \authornote{
 
 The authors made the following contributions. Joselyn Rodriguez: .
-
-Correspondence concerning this article should be addressed to Joselyn Rodriguez, . E-mail:
 
 }
 
@@ -183,7 +178,7 @@ This study followed standard procedures for conducting perceptual learning exper
 \hypertarget{participants}{%
 \subsection{Participants}\label{participants}}
 
-A total of 60 total participants (female: 23) participated in this experiment and were recruited through Amazon's Mechanical Turk. Subjects were compensated at a rate of \$5/30 minutes. The average age of participants was 40.63 (\emph{Med} = 38, \emph{SD} = 12.59).
+A total of 60 total participants (female: 0) participated in this experiment and were recruited through Amazon's Mechanical Turk. Subjects were compensated at a rate of \$5/30 minutes. The average age of participants was NA (\emph{Med} = NA, \emph{SD} = NA).
 
 \hypertarget{materials}{%
 \subsection{Materials}\label{materials}}
@@ -191,7 +186,7 @@ A total of 60 total participants (female: 23) participated in this experiment an
 \hypertarget{stimuli}{%
 \paragraph{Stimuli}\label{stimuli}}
 
-The stimuli for the exposure phase of the experiment were new recordings of previous stimuli used in @{[}put in connine study{]}. These stimuli were re-recorded by a female native speaker of English. There were a total of 20 unique sentences with 3 repetitions for a total of 80 tokens. An example of a sentence is given below:
+The stimuli for the exposure phase of the experiment were new recordings of previous stimuli used in (Connine, Blasko, and Hall (1991)). These stimuli were re-recorded by a female native speaker of English. There were a total of 20 unique sentences with 3 repetitions for a total of 80 tokens. An example of a sentence is given below:
 
 \begin{enumerate}
 \def\labelenumi{(\arabic{enumi})}
@@ -202,12 +197,12 @@ The stimuli for the exposure phase of the experiment were new recordings of prev
 
 As can be seen from this example, the ambiguous word, ``tent,'' is encountered in the sentence and it is noot until a listener hears the word ``camp'' that follows several syllables later that they would be able to disambiguate the speaker's intended meaning. For the purposes of this study, since we were primarily interested in maximizing possible learning effects, we only used the ``short-lag'' sentences in which disambiguating information was provided around 3-5 syllables after encountering the word with the ambiguous segment.
 
-In order to create the vot continuum, a recording of ``the tent'' was synthesized using Praat in order to create a ``tent''-``dent'' whose first segment ranged from 15 (/d/-like) to 85ms (/t/-like) in 5ms increments.
+In order to create the vot continuum, a recording of ``the tent'' was synthesized using Praat (Boersma and Weenink (2009)) in order to create a ``tent''-``dent'' whose first segment ranged from 15 (/d/-like) to 85ms (/t/-like) in 5ms increments.
 
 \hypertarget{pre--and-post-tests}{%
 \subsection{Pre- and Post-tests}\label{pre--and-post-tests}}
 
-This experiment utilized a standard perceptual learning paradigm ((\textbf{norris\_perceptual\_2003?})). This consists of a pre-post two-alternative forced choice task and an exposure phase. In both the pre and post tests, participants are exposed to a /t/-/d/ continuum along vot embedded within the phrase ``the tent'' and were asked to respond whether they heard ``tent'' or ``dent.''
+This experiment utilized a standard perceptual learning paradigm (Norris (2003)). This consists of a pre-post two-alternative forced choice task and an exposure phase. In both the pre and post tests, participants are exposed to a /t/-/d/ continuum along vot embedded within the phrase ``the tent'' and were asked to respond whether they heard ``tent'' or ``dent.''
 
 \hypertarget{exposure-phase}{%
 \subsection{Exposure Phase}\label{exposure-phase}}
@@ -215,15 +210,35 @@ This experiment utilized a standard perceptual learning paradigm ((\textbf{norri
 \hypertarget{data-analysis}{%
 \subsection{Data analysis}\label{data-analysis}}
 
-For the current purposes, only the analyses for the test phases will be reported. The 2AFC test data were analyzed using a Bayesian generalized multi-level regression with a logit-linking function. The analyses were conducted in R @{[}put in r reference{]} utilizing \texttt{stan} @{[}put in stan reference{]} via the R package \texttt{brms} @{[}reference for brms{]}. For this analysis, proportion /t/-responses were modeled as function of the fixed effects: block (pre and post), condition (/t/-biasing and /d/-biasing), and vot (15-85ms). The categorical variables were dummy coded with the reference level for block set as ``pre'' and for condition as /t/-biasing. The continuous variable, vot, was centered in all analyses. Random effects were included as intercepts for subjects and items as well as random slopes for block (pre and post) by subject. A region of practical equivalence (ROPE) was established as ±0.18 around the point null value of 0. The model was fit using 2000 iterations (1,000 warm-up) and Hamiltonian Monte-Carlo sampling was carried out with 4 chains.
+For the current purposes, only the analyses for the test phases will be reported. The 2AFC test data were analyzed using a Bayesian generalized multi-level regression with a logit-linking function. The analyses were conducted in R (R Core Team (2020)) utilizing \texttt{stan} via the R package \texttt{brms} (Bürkner (2017)). For this analysis, proportion /t/-responses were modeled as function of the fixed effects: block (pre and post), condition (/t/-biasing and /d/-biasing), and vot (15-85ms). The categorical variables were dummy coded with the reference level for block set as ``pre'' and for condition as ``/t/-biasing.'' The continuous variable, vot, was centered in all analyses. Random effects were included as intercepts for subjects and items as well as random slopes for block (pre and post) by subject. A region of practical equivalence (ROPE) was established as ±0.18 around the point null value of 0. The model was fit using 2000 iterations (1,000 warm-up) and Hamiltonian Monte-Carlo sampling was carried out with 4 chains.
 
 For all models we report mean posterior point estimates for each parameter of interest, along with the 95\% highest density interval (HDI) and the percent of the region of the HDI contained within the ROPE. We consider a posterior distribution for a parameter \(\beta\) in which 95\% of the HDI falls outside the ROPE as compelling evidence for a given effect.
 
 \hypertarget{results}{%
 \section{Results}\label{results}}
 
+Model fits were determined through planned step-wise comparisons using the widely applicable information criterion (WAIC) and through posterior checks. Examination of the expected versus observed coefficient estimates suggest a good model fit to the data and are shown below in Figure 1.
+
+\includegraphics{final_paper_files/figure-latex/estimate-plot-1.pdf}
+
+The posterior distribution of the estimates from the model are shown below.
+
+\includegraphics{final_paper_files/figure-latex/estimate-forest-1.pdf} \includegraphics{final_paper_files/figure-latex/estimate-forest-2.pdf}
+
+The results of the model show strong evidence for the fixed effects of intercept (\(\beta\)=0.45, HDI = {[}0.03,0.86{]}, ROPE = 0.0737) and the interaction between block and condition (\(\beta\)=-0.32, HDI = {[}-0.52,-0.13{]}, ROPE = .0587). No other effects are considered to have a strong effect on the proportion of /t/ responses as their overlap within ROPE is greater than 5\%. These results implies that the baseline average response in the pre-condition prior to exposure the log-odds of responding /t/ was 0.45 or a 61\% probability. This supports the original intuition discussed previously that the area determined as ambiguous was in fact already biased towards a /t/ response, thus potentially affecting the results of the training phase. However, even with this voiceless bias, the strong effect of the interaction between block and condition suggest that participants in the /d/-biasing condition did respond with fewer voiceless responses in the post test compared to the pre-test.
+
+The plot of the posterior estimates are shown below. The surrounding lines are all samples of posterior estimates from the posterior distribution. This figure shows the conditional effect of a /t/ response as a function of vot, block, and condition. Each line refers to 500 samples from the posterior and can be thought of as uncertainty around the estimate.
+
+\begin{verbatim}
+## $`vot:condition`
+\end{verbatim}
+
+\includegraphics{final_paper_files/figure-latex/conditional-plot-1.pdf}
+
 \hypertarget{discussion}{%
 \section{Discussion}\label{discussion}}
+
+These results suggest that through a perceptual learning paradigm, participants were able to shift their categorization boundaries for /t/ and /d/ from indirect semantic information alone. However, the shift was minimal, and given the large overlap between the posterior distribution of the estimate and the ROPE, the effect is not strong. Additionally, the results of the pre-test showed that while the most ambiguous region was assumed to be around 50ms, the average response of the participants' suggested an ambiguous region around 40ms instead. However, even with the /t/-bias prior to the beginning of the study, participants still showed a slight learning effect.
 
 \newpage
 
@@ -235,7 +250,22 @@ For all models we report mean posterior point estimates for each parameter of in
 \setlength{\leftskip}{0.5in}
 
 \hypertarget{refs}{}
-\begin{CSLReferences}{0}{0}
+\begin{CSLReferences}{1}{0}
+\leavevmode\vadjust pre{\hypertarget{ref-Boersma2009}{}}%
+Boersma, P., \& Weenink, D. (2009). Praat: Doing phonetics by computer (version 5.1.13). Retrieved from \url{http://www.praat.org}
+
+\leavevmode\vadjust pre{\hypertarget{ref-JSSv080i01}{}}%
+Bürkner, P.-C. (2017). Brms: An r package for bayesian multilevel models using stan. \emph{Journal of Statistical Software, Articles}, \emph{80}(1), 1--28. \url{https://doi.org/10.18637/jss.v080.i01}
+
+\leavevmode\vadjust pre{\hypertarget{ref-Connineetal1991}{}}%
+Connine, C. M., Blasko, D. G., \& Hall, M. (1991). Effects of subsequent sentence context in auditory word recognition: Temporal and linguistic constrainst. \emph{Journal of Memory and Language}, \emph{30}(2), 234--250.
+
+\leavevmode\vadjust pre{\hypertarget{ref-norris_perceptual_2003}{}}%
+Norris, D. (2003). Perceptual learning in speech. \emph{Cognitive Psychology}, \emph{47}(2), 204--238. \url{https://doi.org/10.1016/S0010-0285(03)00006-9}
+
+\leavevmode\vadjust pre{\hypertarget{ref-R-base}{}}%
+R Core Team. (2020). \emph{R: A language and environment for statistical computing}. Vienna, Austria: R Foundation for Statistical Computing. Retrieved from \url{https://www.R-project.org/}
+
 \end{CSLReferences}
 
 \endgroup
