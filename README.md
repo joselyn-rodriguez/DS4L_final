@@ -15,4 +15,5 @@ Notes:
 Links:
 
 Final presentation: https://joselyn-rodriguez.github.io/DS4L_final/slides/final_presentation.html#1
-Final paper: 
+
+Final paper: https://github.com/joselyn-rodriguez/DS4L_final/blob/master/paper/final_paper.pdf 
