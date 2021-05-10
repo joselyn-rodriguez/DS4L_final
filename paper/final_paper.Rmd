@@ -4,10 +4,9 @@ shorttitle        : "Title"
 
 author: 
   - name          : "Joselyn Rodriguez"
-    affiliation   : "1"
-    corresponding : yes    # Define only one corresponding author
+    affiliation   : 
     address       : 
-    email         : ""
+    email         : 
     role:        
 authornote:
 
@@ -21,7 +20,7 @@ floatsintext      : no
 figurelist        : no
 tablelist         : no
 footnotelist      : no
-linenumbers       : yes
+linenumbers       : no
 mask              : no
 draft             : no
 
@@ -78,9 +77,22 @@ For the current purposes, only the analyses for the test phases will be reported
 For all models we report mean posterior point estimates for each parameter of interest, along with the 95% highest density interval (HDI) and the percent of the region of the HDI contained within the ROPE. We consider a posterior distribution for a parameter $\beta$ in which 95% of the HDI falls outside the ROPE as compelling evidence for a given effect.
 
 # Results
+The posterior distribution of the estimates from the model are shown below. Model fits were determined through planned step-wise comparisions using the widely accepted information criterion (WAIC). The fit of the model was assessed through posterior checks. Examination of the expected versus observed coefficient stimates suggest a good model fit to the data. 
+
+```{r estimate-plot}
+posterior_check
+```
+
+The plot of the posterior estimatets are shown below. The surrounding lines are all samples of posterior estimates from the posterior distribution. 
+
+```{r conditional-plot}
+conditional_plot
+```
+
+The results of the model show strong evidence for the fixed effects of vot () and the interactiono between block and condition. No other effects are considered to have a strong effect on the proportion of /t/ responses.   
 
 # Discussion
-
+These results suggest that through a perceptual learning paradigm, participants were able to shift their categorization boundaries for /t/ and /d/ from indirect semantic information alone. However, the shift was minimal, and given the large overlap between the posterior distribution of the estimate and the ROPE, the effect is not strong. Additionally, the results of the pre-test showed that while the most ambiguous region was assumed to be around 50ms, the average response of the participants' suggested an ambiguous region around 40ms instead. However, even with the /t/-bias prior to the beginning of the study, participants still showed a slight learning effect. 
 
 \newpage
 

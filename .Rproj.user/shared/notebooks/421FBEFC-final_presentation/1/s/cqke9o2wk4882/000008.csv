@@ -1,7 +1,0 @@
-"0","freq_analysis_1 <- glmer(resp_t ~ block * condition * vot +
-                                  (1 | workerId),
-                                  data = test, family = ""binomial""(link = ""logit""))
-"
-"2","Model failed to converge with max|grad| = 0.00454171 (tol = 0.002, component 1)"
-"2","Model is nearly unidentifiable: very large eigenvalue
- - Rescale variables?"

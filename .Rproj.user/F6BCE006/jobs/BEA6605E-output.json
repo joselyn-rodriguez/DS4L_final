@@ -1,8 +1,0 @@
-[1,"Installing 'ggrepel' ...\n"]
-[2,"trying URL 'https://cran.rstudio.com/bin/macosx/contrib/4.0/ggrepel_0.9.1.tgz'\n"]
-[2,"Content type 'application/x-gzip' length 702306 bytes (685 KB)\n============"]
-[2,"=========================="]
-[2,"============\ndownloaded 685 KB\n\n"]
-[1,"The downloaded binary packages are in\n"]
-[1,"\t/var/folders/n9/qff98q_d0k1gpqgxmz7p1cbm0000gn/T//Rtmpoy3bq8/downloaded_packages\n"]
-[2,"\n\n✔ Package 'ggrepel' successfully installed.\n"]
