@@ -57,22 +57,22 @@ A total of 60 total participants (female: `r num_fem`) participated in this expe
 ## Materials
 
 #### Stimuli
-The stimuli for the exposure phase of the experiment were new recordings of previous stimuli used in (@Connineetal1991). These stimuli were re-recorded by a female native speaker of English. There were a total of 20 unique sentences with 3 repetitions for a total of 80 tokens. An example of a sentence is given below: 
+The stimuli for the exposure phase of the experiment were new recordings of previous stimuli used in [@Connineetal1991]. These stimuli were re-recorded by a female native speaker of English. There were a total of 20 unique sentences with 3 repetitions for a total of 80 tokens. An example of a sentence is given below: 
 
 (1) Since the **tent** at the **camp** was removed, we were able to leave.
 
 As can be seen from this example, the ambiguous word, "tent", is encountered in the sentence and it is noot until a listener hears the word "camp" that follows several syllables later that they would be able to disambiguate the speaker's intended meaning. For the purposes of this study, since we were primarily interested in maximizing possible learning effects, we only used the "short-lag" sentences in which disambiguating information was provided around 3-5 syllables after encountering the word with the ambiguous segment. 
 
-In order to create the vot continuum, a recording of "the tent" was synthesized using Praat (@Boersma2009) in order to create a "tent"-"dent" whose first segment ranged from 15 (/d/-like) to 85ms (/t/-like) in 5ms increments.  
+In order to create the vot continuum, a recording of "the tent" was synthesized using Praat [@Boersma2009] in order to create a "tent"-"dent" whose first segment ranged from 15 (/d/-like) to 85ms (/t/-like) in 5ms increments.  
 
 
 ## Pre- and Post-tests
-This experiment utilized a standard perceptual learning paradigm (@norris_perceptual_2003). This consists of a pre-post two-alternative forced choice task and an exposure phase. In both the pre and post tests, participants are exposed to a /t/-/d/ continuum along vot embedded within the phrase "the tent" and were asked to respond whether they heard "tent" or "dent".
+This experiment utilized a standard perceptual learning paradigm [@norris_perceptual_2003]. This consists of a pre-post two-alternative forced choice task and an exposure phase. In both the pre and post tests, participants are exposed to a /t/-/d/ continuum along vot embedded within the phrase "the tent" and were asked to respond whether they heard "tent" or "dent".
 
 ## Exposure Phase
 
 ## Data analysis
-For the current purposes, only the analyses for the test phases will be reported. The 2AFC test data were analyzed using a Bayesian generalized multi-level regression with a logit-linking function. The analyses were conducted in R (@R-base) utilizing `stan` via the R package `brms` (@JSSv080i01). For this analysis, proportion /t/-responses were modeled as function of the fixed effects: block (pre and post), condition (/t/-biasing and /d/-biasing), and vot (15-85ms). The categorical variables were dummy coded with the reference level for block set as "pre" and for condition as "/t/-biasing". The continuous variable, vot, was centered in all analyses. Random effects were included as intercepts for subjects and items as well as random slopes for block (pre and post) by subject. A region of practical equivalence (ROPE) was established as ±0.18 around the point null value of 0. The model was fit using 2000 iterations (1,000 warm-up) and Hamiltonian Monte-Carlo sampling was carried out with 4 chains.
+For the current purposes, only the analyses for the test phases will be reported. The 2AFC test data were analyzed using a Bayesian generalized multi-level regression with a logit-linking function. The analyses were conducted in R [@R-base] utilizing `stan` via the R package `brms` [@JSSv080i01]. For this analysis, proportion /t/-responses were modeled as function of the fixed effects: block (pre and post), condition (/t/-biasing and /d/-biasing), and vot (15-85ms). The categorical variables were dummy coded with the reference level for block set as "pre" and for condition as "/t/-biasing". The continuous variable, vot, was centered in all analyses. Random effects were included as intercepts for subjects and items as well as random slopes for block (pre and post) by subject. A region of practical equivalence (ROPE) was established as ±0.18 around the point null value of 0. The model was fit using 2000 iterations (1,000 warm-up) and Hamiltonian Monte-Carlo sampling was carried out with 4 chains.
 
 For all models we report mean posterior point estimates for each parameter of interest, along with the 95% highest density interval (HDI) and the percent of the region of the HDI contained within the ROPE. We consider a posterior distribution for a parameter $\beta$ in which 95% of the HDI falls outside the ROPE as compelling evidence for a given effect.
 
