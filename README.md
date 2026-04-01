@@ -1,4 +1,4 @@
-≈This is the repository for my final project for DS4L. 
+This is the repository for my final project for Data Science for Linguists. 
 
 How to use:
 
